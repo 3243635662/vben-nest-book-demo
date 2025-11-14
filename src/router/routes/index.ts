@@ -41,9 +41,14 @@ export const LoginRoute: AppRouteRecordRaw = {
 // Basic routing without permission
 // 未经许可的基本路由
 export const basicRoutes = [
+  // 登录路由
   LoginRoute,
+  // 跟路由
   RootRoute,
+  // 位于主框架外的一个页面的路由
   ...mainOutRoutes,
+  // 重定向页面
   REDIRECT_ROUTE,
+  // 404
   PAGE_NOT_FOUND_ROUTE,
 ];

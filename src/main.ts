@@ -43,6 +43,7 @@ async function bootstrap() {
   // 配置路由
   setupRouter(app);
 
+  // debugger;
   // router-guard
   // 路由守卫
   setupRouterGuard(router);

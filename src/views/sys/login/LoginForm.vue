@@ -119,7 +119,7 @@
   const rememberMe = ref(false);
 
   const formData = reactive({
-    account: 'vben',
+    account: 'fanfan',
     password: '123456',
   });
 
@@ -128,7 +128,7 @@
   //onKeyStroke('Enter', handleLogin);
 
   const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN);
-
+  // login function
   async function handleLogin() {
     const data = await validForm();
     if (!data) return;

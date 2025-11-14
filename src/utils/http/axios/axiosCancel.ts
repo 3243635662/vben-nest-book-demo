@@ -12,9 +12,11 @@ export class AxiosCanceler {
    * 添加请求
    * @param config 请求配置
    */
+  // 下面这里拿取了axios的config  然后将其添加到pendingMap 中
   public addPending(config: AxiosRequestConfig): void {
     this.removePending(config);
     const url = getPendingUrl(config);
+    // AbortController是浏览器提供的一个用于取消请求的API
     const controller = new AbortController();
     config.signal = config.signal || controller.signal;
     if (!pendingMap.has(url)) {
