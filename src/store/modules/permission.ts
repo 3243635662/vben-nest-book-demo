@@ -13,7 +13,7 @@ import projectSetting from '@/settings/projectSetting';
 
 import { PermissionModeEnum } from '@/enums/appEnum';
 
-import { asyncRoutes } from '@/router/routes';
+// import { asyncRoutes } from '@/router/routes';
 import { menuModules } from '@/router/menus';
 import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
@@ -24,7 +24,6 @@ import { getPermCode } from '@/api/sys/user';
 
 import { useMessage } from '@/hooks/web/useMessage';
 import { PageEnum } from '@/enums/pageEnum';
-import { constant } from 'lodash-es';
 import { ROUTE_MAP } from '@/router/router-map';
 
 interface PermissionState {
@@ -183,44 +182,80 @@ export const usePermissionStore = defineStore({
       };
       const wrapperRouteComponent = (routes) => {
         return routes.map((route) => {
-          // 如果有子路由  进行递归遍历
+          // 为所有路由分配组件，即使有 redirect 也需要组件
+          // 对于有 redirect 的路由，组件不会被渲染，但 Vue Router 要求必须存在
+          route.component = ROUTE_MAP[route.name as string] || ROUTE_MAP.EXCEPTION_COMPONENT;
+
+          // 如果有子路由，进行递归遍历
           if (route.children && route.children.length > 0) {
             route.children = wrapperRouteComponent(route.children);
-          } else {
-            // route.component = () => import('@/views/dashboard/analysis/index.vue');
-            route.component = ROUTE_MAP[route.name as string] || ROUTE_MAP.EXCEPTION_COMPONENT;
           }
           return route;
         });
       };
-
-      const backendRoutes = JSON.stringify({
-        path: '/dashboard',
-        name: 'Dashboard',
-        redirect: '/dashboard/analysis',
-        meta: {
-          orderNo: 10,
-          icon: 'ion:grid-outline',
-          title: 'routes.dashboard.dashboard',
-        },
-        children: [
+      let backendRoutes: AppRouteRecordRaw[] = [];
+      try {
+        // 使用自定义的硬编码路由进行开发
+        backendRoutes = [
           {
-            path: 'analysis',
-            name: 'Analysis',
+            path: '/about',
+            name: 'About',
+            redirect: '/about/index',
             meta: {
-              title: 'routes.dashboard.analysis',
+              hideChildrenInMenu: true,
+              icon: 'simple-icons:aboutdotme',
+              title: 'routes.dashboard.about',
+              orderNo: 100000,
             },
+            children: [
+              {
+                path: 'index',
+                name: 'AboutPage',
+                meta: {
+                  title: 'routes.dashboard.about',
+                  icon: 'simple-icons:aboutdotme',
+                  hideMenu: true,
+                  // 移除角色权限限制，允许所有用户访问
+                  ignoreAuth: true,
+                },
+              },
+            ],
           },
           {
-            path: 'workbench',
-            name: 'Workbench',
+            path: '/dashboard',
+            name: 'Dashboard',
+            redirect: '/dashboard/analysis',
             meta: {
-              title: 'routes.dashboard.workbench',
+              orderNo: 10,
+              icon: 'ion:grid-outline',
+              title: 'routes.dashboard.dashboard',
+              // 移除角色权限限制，允许所有用户访问
+              ignoreAuth: true,
             },
+            children: [
+              {
+                path: 'analysis',
+                name: 'Analysis',
+                meta: {
+                  title: 'routes.dashboard.analysis',
+                  ignoreAuth: true,
+                },
+              },
+              {
+                path: 'workbench',
+                name: 'Workbench',
+                meta: {
+                  title: 'routes.dashboard.workbench',
+                  ignoreAuth: true,
+                },
+              },
+            ],
           },
-        ],
-      });
-
+        ];
+      } catch (e) {
+        console.log(e);
+      }
+      // asyncRoutes;
       switch (permissionMode) {
         // 角色权限
         case PermissionModeEnum.ROLE:
@@ -231,7 +266,7 @@ export const usePermissionStore = defineStore({
           // 设置菜单列表
           this.setStaticMenuList(staticMenuList);
           // 对非一级路由进行过滤
-          routes = filter(wrapperRouteComponent(JSON.parse(backendRoutes)), routeFilter);
+          routes = filter(wrapperRouteComponent(backendRoutes), routeFilter);
           // 对一级路由根据角色权限过滤
           routes = routes.filter(routeFilter);
           // Convert multi-level routing to level 2 routing
@@ -242,7 +277,7 @@ export const usePermissionStore = defineStore({
         // 路由映射， 默认进入该case
         case PermissionModeEnum.ROUTE_MAPPING:
           // 对非一级路由进行过滤
-          routes = filter(wrapperRouteComponent([JSON.parse(backendRoutes)]), routeFilter);
+          routes = filter(wrapperRouteComponent(backendRoutes), routeFilter);
           // 对一级路由再次根据角色权限过滤
           routes = routes.filter(routeFilter);
           // 将路由转换成菜单
