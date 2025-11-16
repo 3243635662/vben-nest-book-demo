@@ -125,7 +125,9 @@ export const usePermissionStore = defineStore({
       const appStore = useAppStoreWithOut();
 
       let routes: AppRouteRecordRaw[] = [];
+      // 角色列表  拿到角色角色下可以关联哪些菜单
       const roleList = toRaw(userStore.getRoleList) || [];
+      // 权限模式
       const { permissionMode = projectSetting.permissionMode } = appStore.getProjectConfig;
 
       // 路由过滤器 在 函数filter 作为回调传入遍历使用
@@ -177,6 +179,32 @@ export const usePermissionStore = defineStore({
         }
         return;
       };
+      const backendRoutes = JSON.stringify({
+        path: '/dashboard',
+        name: 'Dashboard',
+        redirect: '/dashboard/analysis',
+        meta: {
+          orderNo: 10,
+          icon: 'ion:grid-outline',
+          title: 'routes.dashboard.dashboard',
+        },
+        children: [
+          {
+            path: 'analysis',
+            name: 'Analysis',
+            meta: {
+              title: 'routes.dashboard.analysis',
+            },
+          },
+          {
+            path: 'workbench',
+            name: 'Workbench',
+            meta: {
+              title: 'routes.dashboard.workbench',
+            },
+          },
+        ],
+      });
 
       switch (permissionMode) {
         // 角色权限
@@ -188,7 +216,7 @@ export const usePermissionStore = defineStore({
           // 设置菜单列表
           this.setStaticMenuList(staticMenuList);
           // 对非一级路由进行过滤
-          routes = filter(asyncRoutes, routeFilter);
+          routes = filter(backendRoutes, routeFilter);
           // 对一级路由根据角色权限过滤
           routes = routes.filter(routeFilter);
           // Convert multi-level routing to level 2 routing
@@ -199,7 +227,7 @@ export const usePermissionStore = defineStore({
         // 路由映射， 默认进入该case
         case PermissionModeEnum.ROUTE_MAPPING:
           // 对非一级路由进行过滤
-          routes = filter(asyncRoutes, routeFilter);
+          routes = filter(backendRoutes, routeFilter);
           // 对一级路由再次根据角色权限过滤
           routes = routes.filter(routeFilter);
           // 将路由转换成菜单

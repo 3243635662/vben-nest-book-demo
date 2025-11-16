@@ -46,6 +46,7 @@ const permission: AppRouteModule = {
           component: () => import('@/views/demo/permission/front/AuthPageA.vue'),
           meta: {
             title: t('routes.demo.permission.frontTestA'),
+            // 如果为super的时候才能访问到 auth-pageA
             roles: [RoleEnum.SUPER],
           },
         },

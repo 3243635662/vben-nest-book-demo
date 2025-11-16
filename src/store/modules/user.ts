@@ -58,6 +58,7 @@ export const useUserStore = defineStore({
   },
   actions: {
     setToken(info: string | undefined) {
+      console.log('setToken', info);
       this.token = info ? info : ''; // for null or undefined value
       setAuthCache(TOKEN_KEY, info);
     },
@@ -92,9 +93,6 @@ export const useUserStore = defineStore({
         const { goHome = true, mode, ...loginParams } = params;
         const data = await loginApi(loginParams, mode);
         const { token } = data;
-        // console.log('token', token);
-        // console.log('data', data);
-
         // save token
         this.setToken(token);
         return this.afterLoginAction(goHome);
@@ -104,7 +102,7 @@ export const useUserStore = defineStore({
     },
     async afterLoginAction(goHome?: boolean): Promise<GetUserInfoModel | null> {
       if (!this.getToken) return null;
-      // get user info
+      //获取用户信息
       const userInfo = await this.getUserInfoAction();
 
       const sessionTimeout = this.sessionTimeout;
@@ -132,7 +130,11 @@ export const useUserStore = defineStore({
       const userInfo = await getUserInfo();
       const { roles = [] } = userInfo;
       if (isArray(roles)) {
-        const roleList = roles.map((item) => item.value) as RoleEnum[];
+        // 处理字符串数组格式的roles（"roles": ["super"]）和对象数组格式的roles
+        const roleList = roles.map((item) => {
+          // 如果是字符串，直接返回；如果是对象，返回其value属性
+          return typeof item === 'string' ? item : item.value;
+        }) as RoleEnum[];
         this.setRoleList(roleList);
       } else {
         userInfo.roles = [];

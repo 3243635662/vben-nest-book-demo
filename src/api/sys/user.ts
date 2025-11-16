@@ -7,7 +7,7 @@ enum Api {
   // 修改api  前后端联调
   Login = '/auth/login',
   Logout = '/logout',
-  GetUserInfo = '/auth/userinfo',
+  GetUserInfo = '/user/info',
   GetPermCode = '/getPermCode',
   TestRetry = '/testRetry',
 }
