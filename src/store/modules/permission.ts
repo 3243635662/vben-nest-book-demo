@@ -19,7 +19,7 @@ import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
 import { filter } from '@/utils/helper/treeHelper';
 
-import { getMenuList } from '@/api/sys/menu';
+import { getMenuList, getAllMenuList } from '@/api/sys/menu';
 import { getPermCode } from '@/api/sys/user';
 
 import { useMessage } from '@/hooks/web/useMessage';
@@ -184,7 +184,10 @@ export const usePermissionStore = defineStore({
         return routes.map((route) => {
           // 为所有路由分配组件，即使有 redirect 也需要组件
           // 对于有 redirect 的路由，组件不会被渲染，但 Vue Router 要求必须存在
-          route.component = ROUTE_MAP[route.name as string] || ROUTE_MAP.EXCEPTION_COMPONENT;
+          const component = ROUTE_MAP[route.name as string];
+          console.log('为路由', route.name, '分配组件:', component);
+
+          route.component = component;
 
           // 如果有子路由，进行递归遍历
           if (route.children && route.children.length > 0) {
@@ -193,68 +196,34 @@ export const usePermissionStore = defineStore({
           return route;
         });
       };
-      let backendRoutes: AppRouteRecordRaw[] = [];
+
+      const getAllMenu = () => {
+        return getAllMenuList();
+      };
+
+      let backendRoutes: object[] = [];
+
       try {
-        // 使用自定义的硬编码路由进行开发
-        backendRoutes = [
-          {
-            path: '/about',
-            name: 'About',
-            redirect: '/about/index',
-            meta: {
-              hideChildrenInMenu: true,
-              icon: 'simple-icons:aboutdotme',
-              title: 'routes.dashboard.about',
-              orderNo: 100000,
-            },
-            children: [
-              {
-                path: 'index',
-                name: 'AboutPage',
-                meta: {
-                  title: 'routes.dashboard.about',
-                  icon: 'simple-icons:aboutdotme',
-                  hideMenu: true,
-                  // 移除角色权限限制，允许所有用户访问
-                  ignoreAuth: true,
-                },
-              },
-            ],
-          },
-          {
-            path: '/dashboard',
-            name: 'Dashboard',
-            redirect: '/dashboard/analysis',
-            meta: {
-              orderNo: 10,
-              icon: 'ion:grid-outline',
-              title: 'routes.dashboard.dashboard',
-              // 移除角色权限限制，允许所有用户访问
-              ignoreAuth: true,
-            },
-            children: [
-              {
-                path: 'analysis',
-                name: 'Analysis',
-                meta: {
-                  title: 'routes.dashboard.analysis',
-                  ignoreAuth: true,
-                },
-              },
-              {
-                path: 'workbench',
-                name: 'Workbench',
-                meta: {
-                  title: 'routes.dashboard.workbench',
-                  ignoreAuth: true,
-                },
-              },
-            ],
-          },
-        ];
-      } catch (e) {
-        console.log(e);
+        backendRoutes = [];
+        const apiResult = await getAllMenu();
+        // 如果后端返回了有效的路由数据，直接使用后端数据，不需要转换
+        if (apiResult && Array.isArray(apiResult) && apiResult.length > 0) {
+          backendRoutes = apiResult;
+        } else if (
+          apiResult &&
+          apiResult.menuList &&
+          Array.isArray(apiResult.menuList) &&
+          apiResult.menuList.length > 0
+        ) {
+          // 兼容嵌套结构
+          backendRoutes = apiResult.menuList;
+        } else {
+          console.log('后端返回数据无效，使用硬编码路由');
+        }
+      } catch (error) {
+        console.log('后端菜单API调用失败，使用硬编码路由:', error);
       }
+
       // asyncRoutes;
       switch (permissionMode) {
         // 角色权限
