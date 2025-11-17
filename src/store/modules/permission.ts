@@ -13,7 +13,6 @@ import projectSetting from '@/settings/projectSetting';
 
 import { PermissionModeEnum } from '@/enums/appEnum';
 
-// import { asyncRoutes } from '@/router/routes';
 import { menuModules } from '@/router/menus';
 import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 
@@ -180,12 +179,13 @@ export const usePermissionStore = defineStore({
         }
         return;
       };
-      const wrapperRouteComponent = (routes) => {
+      // 启动自定义后端路由的时候 为所有路由分配组件，即使有 redirect 也需要组件
+      const wrapperRouteComponent = (routes: AppRouteRecordRaw[]) => {
         return routes.map((route) => {
           // 为所有路由分配组件，即使有 redirect 也需要组件
           // 对于有 redirect 的路由，组件不会被渲染，但 Vue Router 要求必须存在
           const component = ROUTE_MAP[route.name as string];
-          console.log('为路由', route.name, '分配组件:', component);
+          // console.log('为路由', route.name, '分配组件:', component);
 
           route.component = component;
 
@@ -224,7 +224,10 @@ export const usePermissionStore = defineStore({
         console.log('后端菜单API调用失败，使用硬编码路由:', error);
       }
 
-      // asyncRoutes;
+      // 如果要看框架原来的页面就开启这个 asyncRoutes
+      // import { asyncRoutes } from '@/router/routes';
+      // backendRoutes = asyncRoutes;
+
       switch (permissionMode) {
         // 角色权限
         case PermissionModeEnum.ROLE:
@@ -235,7 +238,8 @@ export const usePermissionStore = defineStore({
           // 设置菜单列表
           this.setStaticMenuList(staticMenuList);
           // 对非一级路由进行过滤
-          routes = filter(wrapperRouteComponent(backendRoutes), routeFilter);
+          routes = filter(wrapperRouteComponent(backendRoutes as AppRouteRecordRaw[]), routeFilter);
+          // routes = filter(backendRoutes as AppRouteRecordRaw[], routeFilter);
           // 对一级路由根据角色权限过滤
           routes = routes.filter(routeFilter);
           // Convert multi-level routing to level 2 routing
@@ -246,7 +250,8 @@ export const usePermissionStore = defineStore({
         // 路由映射， 默认进入该case
         case PermissionModeEnum.ROUTE_MAPPING:
           // 对非一级路由进行过滤
-          routes = filter(wrapperRouteComponent(backendRoutes), routeFilter);
+          routes = filter(wrapperRouteComponent(backendRoutes as AppRouteRecordRaw[]), routeFilter);
+          // routes = filter(backendRoutes as AppRouteRecordRaw[], routeFilter);
           // 对一级路由再次根据角色权限过滤
           routes = routes.filter(routeFilter);
           // 将路由转换成菜单

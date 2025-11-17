@@ -8,7 +8,7 @@ const permission: AppRouteModule = {
   path: '/permission',
   name: 'Permission',
   component: LAYOUT,
-  redirect: '/permission/front/page',
+  redirect: '/permission/menu',
   meta: {
     orderNo: 15,
     icon: 'ion:key-outline',
@@ -16,6 +16,16 @@ const permission: AppRouteModule = {
   },
 
   children: [
+    // 新建菜单管理
+    {
+      path: 'menu',
+      name: 'PermissionMenu',
+      meta: {
+        title: t('routes.demo.permission.menu'),
+        ignoreKeepAlive: true,
+      },
+      component: () => import('@/views/permission/menu/index.vue'),
+    },
     {
       path: 'front',
       name: 'PermissionFrontDemo',
