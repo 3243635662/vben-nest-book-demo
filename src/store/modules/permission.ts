@@ -8,23 +8,18 @@ import { useAppStoreWithOut } from './app';
 import { toRaw } from 'vue';
 import { transformObjToRoute, flatMultiLevelRoutes } from '@/router/helper/routeHelper';
 import { transformRouteToMenu, transformMenuModules } from '@/router/helper/menuHelper';
-
 import projectSetting from '@/settings/projectSetting';
-
 import { PermissionModeEnum } from '@/enums/appEnum';
-
 import { menuModules } from '@/router/menus';
 import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
-
 import { filter } from '@/utils/helper/treeHelper';
-
 import { getMenuList, getAllMenuList } from '@/api/sys/menu';
 import { getPermCode } from '@/api/sys/user';
-
 import { useMessage } from '@/hooks/web/useMessage';
 import { PageEnum } from '@/enums/pageEnum';
 import { ROUTE_MAP } from '@/router/router-map';
 
+const { createMessage } = useMessage();
 interface PermissionState {
   // Permission code list
   // 权限代码列表
@@ -179,6 +174,7 @@ export const usePermissionStore = defineStore({
         }
         return;
       };
+
       // 启动自定义后端路由的时候 为所有路由分配组件，即使有 redirect 也需要组件
       const wrapperRouteComponent = (routes: AppRouteRecordRaw[]) => {
         return routes.map((route) => {
@@ -197,8 +193,58 @@ export const usePermissionStore = defineStore({
         });
       };
 
-      const getAllMenu = () => {
-        return getAllMenuList();
+      // 将后端返回的路由转化成前端结构
+      const conventMenuTree = (menuList: any) => {
+        const menus: any[] = [];
+        menuList.forEach((menu) => {
+          // 解析meta字段
+          if (menu.meta && typeof menu.meta === 'string') {
+            try {
+              menu.meta = JSON.parse(menu.meta);
+            } catch {
+              createMessage.error('JSON解析错误:', menu.meta);
+            }
+          }
+          // 如果是父路由
+          if (menu.pid === 0) {
+            menus.push(menu);
+            // 让父路由先将子路由数组创建起来
+            if (!menu.children) {
+              menu.children = [];
+            }
+          } else {
+            // 如果是子路由 将父路由找出
+            const parentMenu = menuList.find((parentMenuItem) => parentMenuItem.id === menu.pid);
+            if (parentMenu) {
+              // 确保parentMenu.children存在
+              if (!parentMenu.children) {
+                parentMenu.children = [];
+              }
+              // 将子路由添加到父路由的children数组中
+              parentMenu.children.push(menu);
+            }
+          }
+        });
+        return menus;
+      };
+
+      // 获取到后端的路由 且改造为前端结构
+      const getAllMenu = async () => {
+        try {
+          const response = await getAllMenuList();
+
+          // 处理API返回的数据结构：PromiseResult包含menuList数组
+          if (response && Array.isArray(response)) {
+            const menuData = conventMenuTree(response);
+            return menuData;
+          } else {
+            createMessage.error('API返回数据格式不正确，menuList不存在或不是数组');
+            return [];
+          }
+        } catch {
+          createMessage.error('getAllMenu API调用失败');
+          return [];
+        }
       };
 
       let backendRoutes: object[] = [];
@@ -209,19 +255,11 @@ export const usePermissionStore = defineStore({
         // 如果后端返回了有效的路由数据，直接使用后端数据，不需要转换
         if (apiResult && Array.isArray(apiResult) && apiResult.length > 0) {
           backendRoutes = apiResult;
-        } else if (
-          apiResult &&
-          apiResult.menuList &&
-          Array.isArray(apiResult.menuList) &&
-          apiResult.menuList.length > 0
-        ) {
-          // 兼容嵌套结构
-          backendRoutes = apiResult.menuList;
         } else {
-          console.log('后端返回数据无效，使用硬编码路由');
+          createMessage.warning('后端返回数据无效，使用备用路由');
         }
-      } catch (error) {
-        console.log('后端菜单API调用失败，使用硬编码路由:', error);
+      } catch {
+        createMessage.error('后端菜单API调用失败，使用备用路由');
       }
 
       // 如果要看框架原来的页面就开启这个 asyncRoutes

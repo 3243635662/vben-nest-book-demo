@@ -6,7 +6,7 @@ import Icon from '@/components/Icon/Icon.vue';
 export const columns: BasicColumn[] = [
   {
     title: '菜单名称',
-    dataIndex: 'menuName',
+    dataIndex: 'name',
     width: 200,
     align: 'left',
   },
@@ -19,8 +19,8 @@ export const columns: BasicColumn[] = [
     },
   },
   {
-    title: '权限标识',
-    dataIndex: 'permission',
+    title: '菜单路径',
+    dataIndex: 'path',
     width: 180,
   },
   {
@@ -28,26 +28,26 @@ export const columns: BasicColumn[] = [
     dataIndex: 'component',
   },
   {
-    title: '排序',
-    dataIndex: 'orderNo',
-    width: 50,
+    title: '重定向',
+    dataIndex: 'redirect',
+    width: 180,
   },
   {
     title: '状态',
     dataIndex: 'status',
     width: 80,
     customRender: ({ record }) => {
-      const status = record.status;
-      const enable = ~~status === 0;
+      const status = record.active;
+      const enable = ~~status === 1;
       const color = enable ? 'green' : 'red';
       const text = enable ? '启用' : '停用';
       return h(Tag, { color: color }, () => text);
     },
   },
   {
-    title: '创建时间',
-    dataIndex: 'createTime',
-    width: 180,
+    title: '元数据',
+    dataIndex: 'meta',
+    width: 150,
   },
 ];
 
