@@ -13,7 +13,7 @@ import { PermissionModeEnum } from '@/enums/appEnum';
 import { menuModules } from '@/router/menus';
 import { ERROR_LOG_ROUTE, PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 import { filter } from '@/utils/helper/treeHelper';
-import { getMenuList, getAllMenuList } from '@/api/sys/menu';
+import { getMenuList } from '@/api/sys/menu';
 import { getPermCode } from '@/api/sys/user';
 import { useMessage } from '@/hooks/web/useMessage';
 import { PageEnum } from '@/enums/pageEnum';
@@ -229,10 +229,10 @@ export const usePermissionStore = defineStore({
       };
 
       // 获取到后端的路由 且改造为前端结构
-      const getAllMenu = async () => {
+      const getEnableMenu = async () => {
         try {
-          const response = await getAllMenuList();
-
+          const response = await getMenuList();
+          console.log('getMenuList response:', response);
           // 处理API返回的数据结构：PromiseResult包含menuList数组
           if (response && Array.isArray(response)) {
             const menuData = conventMenuTree(response);
@@ -251,7 +251,7 @@ export const usePermissionStore = defineStore({
 
       try {
         backendRoutes = [];
-        const apiResult = await getAllMenu();
+        const apiResult = await getEnableMenu();
         // 如果后端返回了有效的路由数据，直接使用后端数据，不需要转换
         if (apiResult && Array.isArray(apiResult) && apiResult.length > 0) {
           backendRoutes = apiResult;
