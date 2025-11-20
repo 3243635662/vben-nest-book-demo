@@ -222,8 +222,8 @@ const transform: AxiosTransform = {
 
     // 添加自动重试机制 保险起见 只针对GET请求
     const retryRequest = new AxiosRetry();
-    const { isOpenRetry } = config.requestOptions.retryRequest;
-    config.method?.toUpperCase() === RequestEnum.GET &&
+    const { isOpenRetry } = config?.requestOptions?.retryRequest || { isOpenRetry: false };
+    config?.method?.toUpperCase() === RequestEnum.GET &&
       isOpenRetry &&
       error?.response?.status !== 401 &&
       // @ts-ignore

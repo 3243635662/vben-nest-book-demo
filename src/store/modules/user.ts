@@ -7,7 +7,7 @@ import { PageEnum } from '@/enums/pageEnum';
 import { ROLES_KEY, TOKEN_KEY, USER_INFO_KEY } from '@/enums/cacheEnum';
 import { getAuthCache, setAuthCache } from '@/utils/auth';
 import { GetUserInfoModel, LoginParams } from '@/api/sys/model/userModel';
-import { doLogout, getUserInfo, loginApi } from '@/api/sys/user';
+import { doLogout, getUserInfo, loginApi, getIP } from '@/api/sys/user';
 import { useI18n } from '@/hooks/web/useI18n';
 import { useMessage } from '@/hooks/web/useMessage';
 import { router } from '@/router';
@@ -17,12 +17,14 @@ import { PAGE_NOT_FOUND_ROUTE } from '@/router/routes/basic';
 import { isArray } from '@/utils/is';
 import { h } from 'vue';
 
+// const { createMessage } = useMessage();
 interface UserState {
   userInfo: Nullable<UserInfo>;
   token?: string;
   roleList: RoleEnum[];
   sessionTimeout?: boolean;
   lastUpdateTime: number;
+  IP: string;
 }
 
 export const useUserStore = defineStore({
@@ -38,6 +40,8 @@ export const useUserStore = defineStore({
     sessionTimeout: false,
     // Last fetch time
     lastUpdateTime: 0,
+    // IP
+    IP: '',
   }),
   getters: {
     getUserInfo(state): UserInfo {
@@ -54,6 +58,9 @@ export const useUserStore = defineStore({
     },
     getLastUpdateTime(state): number {
       return state.lastUpdateTime;
+    },
+    getIP(state): string {
+      return state.IP;
     },
   },
   actions: {
@@ -74,6 +81,9 @@ export const useUserStore = defineStore({
     setSessionTimeout(flag: boolean) {
       this.sessionTimeout = flag;
     },
+    setIP(ip: string) {
+      this.IP = ip;
+    },
     resetState() {
       this.userInfo = null;
       this.token = '';
@@ -89,12 +99,21 @@ export const useUserStore = defineStore({
         mode?: ErrorMessageMode;
       },
     ): Promise<GetUserInfoModel | null> {
+      // 获取IP地址
+      try {
+        const ipData = await getIP();
+        this.setIP(ipData.ip);
+      } catch (error) {
+        console.log('获取IP地址失败', error);
+      }
+
       try {
         const { goHome = true, mode, ...loginParams } = params;
         const data = await loginApi(loginParams, mode);
         const { token } = data;
         // save token
         this.setToken(token);
+
         return this.afterLoginAction(goHome);
       } catch (error) {
         return Promise.reject(error);

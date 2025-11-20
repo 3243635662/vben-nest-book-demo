@@ -78,7 +78,9 @@
 
     return result;
   }
+// const checkAllChildMenuDisable=()=>{
 
+// }
   async function handleSubmit() {
     try {
       const values = await validate();
@@ -122,6 +124,13 @@
         createMessage.success('新增菜单成功')
         }
         else{
+          /* 
+        这里有两种思路：
+         1： 如果是所有子菜单全部关闭后，主菜单才能关闭 （前端复杂）
+         2： 如果是主菜单关闭后，所有子菜单也必须关闭 （后端实现更简单）
+
+         我们这里就使用后端级联操作的方法 更快捷和简单
+         */
           await updateMenu(submitValues);
           createMessage.success('编辑菜单成功')
         }
