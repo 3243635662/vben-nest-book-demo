@@ -46,7 +46,7 @@
 
     <FormItem class="enter-x">
       <Button type="primary" size="large" block @click="handleLogin" :loading="loading">
-        {{ t('sys.login.loginButton') }}
+        {{ loading?t('sys.login.loginButtonLoading'):t('sys.login.loginButton') }}
       </Button>
       <!-- <Button size="large" class="mt-4 enter-x" block @click="handleRegister">
         {{ t('sys.login.registerButton') }}

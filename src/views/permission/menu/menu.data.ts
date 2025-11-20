@@ -118,7 +118,7 @@ export const formSchema: FormSchema[] = [
     field: 'icon',
     label: '图标',
     component: 'IconPicker',
-    required: true,
+    required: false,
     ifShow: ({ values }) => !isButton(values.type),
   },
 

@@ -70,6 +70,7 @@
     "policy": "I agree to the xxx Privacy Policy",
     "scanSign": "scanning the code to complete the login",
     "loginButton": "Sign in",
+    "loginButtonLoading": "Please wait, we are trying to get your IP address",
     "registerButton": "Sign up",
     "rememberMe": "Remember me",
     "forgetPassword": "Forget Password?",
