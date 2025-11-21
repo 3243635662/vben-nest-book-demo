@@ -82,6 +82,7 @@ export const basicProps = {
 
   // 自定义重置函数
   resetFunc: Function as PropType<() => Promise<void>>,
+  // 自定义提交函数
   submitFunc: Function as PropType<() => Promise<void>>,
 
   // 以下为默认props

@@ -83,9 +83,9 @@
     });
   }
 
-  function handleDelete(record: Recordable) {
-    console.log(record);
-  }
+  // function handleDelete(record: Recordable) {
+  //   console.log(record);
+  // }
 
   function handleSuccess() {
     reload();

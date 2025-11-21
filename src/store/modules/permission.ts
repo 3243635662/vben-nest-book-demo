@@ -232,7 +232,7 @@ export const usePermissionStore = defineStore({
       const getEnableMenu = async () => {
         try {
           const response = await getMenuList();
-          console.log('getMenuList response:', response);
+          // console.log('getMenuList response:', response);
           // 处理API返回的数据结构：PromiseResult包含menuList数组
           if (response && Array.isArray(response)) {
             const menuData = conventMenuTree(response);

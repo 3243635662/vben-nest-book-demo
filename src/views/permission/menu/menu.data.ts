@@ -69,6 +69,9 @@ export const searchFormSchema: FormSchema[] = [
     field: 'name',
     label: '菜单名称',
     component: 'Input',
+    componentProps: {
+      placeholder: '请输入菜单名称',
+    },
     colProps: { span: 8 },
   },
   {
@@ -80,6 +83,7 @@ export const searchFormSchema: FormSchema[] = [
         { label: '启用', value: '1' },
         { label: '停用', value: '0' },
       ],
+      placeholder: '请选择状态',
     },
     colProps: { span: 8 },
   },
