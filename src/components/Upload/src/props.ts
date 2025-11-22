@@ -53,7 +53,7 @@ export const basicProps = {
   // 最大数量的文件，Infinity不限制
   maxNumber: {
     type: Number as PropType<number>,
-    default: 1,
+    default: 2,
   },
   // 根据后缀，或者其他
   accept: {

@@ -21,3 +21,9 @@ export function uploadApi(
     params,
   );
 }
+
+export const deleteFileApi = (fileName: string) => {
+  return defHttp.delete<{ code: number; result: any; message?: string }>({
+    url: `/book/file?fileName=${encodeURIComponent(fileName)}`,
+  });
+};

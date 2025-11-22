@@ -191,16 +191,53 @@
           item.percent = complete;
         },
       );
-      const { data } = ret;
+      // 修复：直接从ret中获取result（后端响应result在根对象）
+      console.log('ret:', ret);
+      const resultData = ret?.result || {};
       item.status = UploadResultStatus.SUCCESS;
-      item.response = data;
+      item.response = ret;
+
+      // 使用类型断言解决TypeScript类型错误
+      const typedItem = item as FileItem & { fileName?: string; url?: string };
+
+      // 确保保存fileName字段用于删除操作
+      // 仅在后端返回fileName时才保存（问题点）
+      // 正确代码（无需修改）
+      if (resultData.fileName) {
+        typedItem.fileName = resultData.fileName; // 现在能正确获取后端返回的fileName
+      } else if (resultData.filePath) {
+        typedItem.fileName = resultData.filePath.split('/').pop();
+      }
+
       if (props.resultField) {
         // 适配预览组件而进行封装
-        item.response = {
+        const responseData = {
           code: 0,
           message: 'upload Success!',
           url: get(ret, props.resultField),
         };
+
+        // 确保response中包含原始result数据
+        if (resultData.filePath) {
+          responseData.url = resultData.filePath;
+        }
+
+        item.response = responseData;
+      } else {
+        // 确保response对象存在
+        if (!item.response) {
+          item.response = {};
+        }
+
+        // 确保response中包含必要的字段
+        if (resultData.filePath) {
+          (item.response as any).url = resultData.filePath;
+        }
+      }
+
+      // 确保url字段也正确设置，用于预览
+      if (resultData.filePath) {
+        typedItem.url = resultData.filePath;
       }
       return {
         success: true,

@@ -1,14 +1,12 @@
 <template>
   <div class="step1">
-    <div class="step1-form">
+    <div class="step1-form center">
       <BasicForm @register="register" />
     </div>
     <Divider />
     <h3>图书信息填写</h3>
     <h4>必填信息</h4>
-    <p>
-      请填写图书的书名，这是创建图书的唯一必填项。
-    </p>
+    <p> 请填写图书的书名，这是创建图书的唯一必填项。 </p>
 
     <h4>可选信息</h4>
     <p>
@@ -36,6 +34,12 @@
     },
     submitFunc: customSubmitFunc,
     compact: true,
+    labelCol: {
+      span: 24,
+    },
+    wrapperCol: {
+      span: 24,
+    },
   });
 
   async function customSubmitFunc() {
@@ -43,7 +47,9 @@
       const values = await validate();
       // 过滤掉空值，只保留有值的字段
       const filteredValues = Object.fromEntries(
-        Object.entries(values).filter(([_, value]) => value !== '' && value !== null && value !== undefined)
+        Object.entries(values).filter(
+          ([_, value]) => value !== '' && value !== null && value !== undefined,
+        ),
       );
       emit('next', filteredValues);
     } catch (error) {
@@ -54,8 +60,16 @@
 <style lang="less" scoped>
   .step1 {
     &-form {
-      width: 310px;
+      width: 290px;
       margin: 0 auto;
+
+      :deep(.ant-form-item-control) {
+        text-align: center;
+      }
+
+      :deep(.ant-form-item-label) {
+        text-align: left;
+      }
     }
 
     h3 {

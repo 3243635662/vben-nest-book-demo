@@ -1,4 +1,5 @@
 import { FormSchema } from '@/components/Form';
+import { uploadApi } from '@/api/sys/upload';
 
 // 第一步：填写图书基本信息（核心信息）
 export const step1Schemas: FormSchema[] = [
@@ -16,26 +17,65 @@ export const step1Schemas: FormSchema[] = [
   },
   {
     field: 'cover',
-    component: 'Input',
+    component: 'ImageUpload',
     label: '封面图片',
-    required: false,
-    componentProps: {
-      placeholder: '请上传封面图片（可选）',
-    },
     colProps: {
-      span: 24,
+      span: 8,
+    },
+    componentProps: {
+      // 修改resultField以获取完整结果对象
+      resultField: 'result',
+      api: (file, progress) => {
+        return new Promise((resolve) => {
+          uploadApi(file, progress).then((uploadApiResponse) => {
+            // 保留完整的result数据，包括fileName和filePath
+            resolve(uploadApiResponse.data);
+          });
+        });
+      },
     },
   },
+  /*
+  // {
+  //   field: 'cover',
+  //   component: 'Input',
+  //   label: '封面图片',
+  //   required: false,
+  //   componentProps: {
+  //     placeholder: '请上传封面图片（可选）',
+  //   },
+  //   colProps: {
+  //     span: 24,
+  //   },
+  // },
+  // {
+  //   field: 'fileName',
+  //   component: 'Input',
+  //   label: '文件',
+  //   required: false,
+  //   componentProps: {
+  //     placeholder: '请上传电子书文件（PDF、EPUB等格式）',
+  //   },
+  //   colProps: {
+  //     span: 24,
+  //   },
+  // },
+  */
   {
-    field: 'fileName',
-    component: 'Input',
-    label: '文件',
-    required: false,
+    field: 'file',
+    component: 'Upload',
+    label: '电子书文件',
     componentProps: {
-      placeholder: '请上传电子书文件（PDF、EPUB等格式）',
-    },
-    colProps: {
-      span: 24,
+      // 将resultField从'file.url'改为'result'以获取完整响应
+      resultField: 'result',
+      api: (file, progress) => {
+        return new Promise((resolve) => {
+          uploadApi(file, progress).then((uploadApiResponse) => {
+            // 直接返回完整响应数据而非包装对象
+            resolve(uploadApiResponse.data);
+          });
+        });
+      },
     },
   },
   {
@@ -157,7 +197,7 @@ export const step2Schemas: FormSchema[] = [
     required: true,
     defaultValue: false,
     componentProps: {
-      placeholder: '我已确认上述图书信息无误，同意创建',
+      // placeholder 属性在 Checkbox 组件中不被支持，移除即可
     },
     colProps: {
       span: 24,

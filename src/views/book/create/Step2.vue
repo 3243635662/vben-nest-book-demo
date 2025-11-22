@@ -45,7 +45,7 @@
   import { BasicForm, useForm } from '@/components/Form';
   import { step2Schemas } from './data';
   import { Alert, Divider, Descriptions } from 'ant-design-vue';
-  import { watch } from 'vue';
+  // import { watch } from 'vue';
 
   const props = defineProps({
     step1Data: {

@@ -39,6 +39,7 @@
   import { checkFileType } from '../helper';
   import { UploadResultStatus } from '@/components/Upload/src/types/typing';
   import { get, omit } from 'lodash-es';
+  import { deleteFileApi } from '@/api/sys/upload'; // 添加导入
 
   defineOptions({ name: 'ImageUpload' });
 
@@ -129,6 +130,25 @@
 
   const handleRemove = async (file: UploadFile) => {
     if (fileList.value) {
+      // 修复：提取文件名并调用删除API
+      let fileName = file.fileName;
+      console.log('fileName:', fileName);
+      // 如果没有fileName，但有url，则从url中提取文件名
+      if (!fileName && file.url) {
+        fileName = file.url.split('/').pop();
+      }
+
+      // 如果有fileName，尝试从后端删除文件
+      if (fileName) {
+        try {
+          await deleteFileApi(fileName);
+        } catch (error) {
+          console.error('删除文件时出错:', error);
+          // 即使后端删除失败，也继续移除前端文件列表
+        }
+      }
+
+      // 从前端文件列表中移除
       const index = fileList.value.findIndex((item) => item.uid === file.uid);
       index !== -1 && fileList.value.splice(index, 1);
       const value = getValue();
@@ -177,13 +197,17 @@
         name: name,
         filename: filename,
       });
-      if (props.resultField) {
-        let result = get(res, resultField);
-        info.onSuccess!(result);
-      } else {
-        // 不传入 resultField 的情况
-        info.onSuccess!(res.data);
+
+      // 获取完整结果数据
+      const resultData = props.resultField ? get(res, resultField) : res.data;
+      // 确保保存fileName用于删除操作
+      if (resultData.fileName) {
+        (info.file as any).fileName = resultData.fileName;
       }
+      // 使用完整的filePath作为URL
+      const fileUrl = resultData.filePath || resultData.url;
+      info.onSuccess!({ url: fileUrl, ...resultData });
+
       const value = getValue();
       isInnerOperate.value = true;
       emit('update:value', value);
@@ -198,10 +222,8 @@
     const list = (fileList.value || [])
       .filter((item) => item?.status === UploadResultStatus.DONE)
       .map((item: any) => {
-        if (item?.response && props?.resultField) {
-          return item?.response;
-        }
-        return item?.url || item?.response?.url;
+        // 返回完整响应对象，确保包含url和fileName
+        return item?.response || { url: item?.url, fileName: item?.fileName };
       });
     return list;
   }

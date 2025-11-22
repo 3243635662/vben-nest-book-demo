@@ -6,7 +6,10 @@ import TableAction from '@/components/Table/src/components/TableAction.vue';
 import ThumbUrl from './ThumbUrl.vue';
 import { useI18n } from '@/hooks/web/useI18n';
 import { previewColumnsFnType } from '../props';
+import { deleteFileApi } from '@/api/sys/upload';
+import { useMessage } from '../../../../hooks/web/useMessage';
 
+const { createMessage } = useMessage();
 const { t } = useI18n();
 
 // 文件上传列表
@@ -17,8 +20,30 @@ export function createTableColumns(): FileBasicColumn[] {
       title: t('component.upload.legend'),
       width: 100,
       customRender: ({ record }) => {
-        const { thumbUrl } = (record as FileItem) || {};
-        return thumbUrl && <ThumbUrl fileUrl={thumbUrl} />;
+        const { url, thumbUrl } = (record as FileItem & { url?: string }) || {};
+        // 优先使用thumbUrl，没有则使用url
+        const imageUrl = thumbUrl || url;
+        // 判断是否为图片类型
+        if (imageUrl && isImgTypeByName(imageUrl)) {
+          return <ThumbUrl fileUrl={imageUrl} />;
+        } else if (url) {
+          // 非图片文件显示下载链接
+          return (
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              <span
+                style={{
+                  fontSize: '14px',
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                }}
+              >
+                文件
+              </span>
+            </a>
+          );
+        }
+        return null;
       },
     },
     {
@@ -82,11 +107,39 @@ export function createActionColumn(handleRemove: Function): FileBasicColumn {
         {
           label: t('component.upload.del'),
           color: 'error',
-          onClick: handleRemove.bind(null, {
-            record,
-            uidKey: 'uid',
-            valueKey: 'url',
-          }),
+          onClick: async () => {
+            // 修复：从record中提取正确的fileName
+            let fileName = record.fileName;
+
+            // 如果没有fileName，但有url，则从url中提取文件名
+            if (!fileName && record.url) {
+              // 修复：从URL中提取文件名部分，处理可能的空值
+              const urlParts = record.url.split('/').filter((part) => part.trim() !== '');
+              fileName = urlParts.length > 0 ? urlParts.pop() : undefined;
+            }
+
+            if (!fileName) {
+              createMessage.error('缺少文件名，无法删除');
+              return;
+            }
+
+            try {
+              const res = await deleteFileApi(fileName);
+              if (res.code === 0) {
+                handleRemove.bind(null, {
+                  record,
+                  uidKey: 'uid',
+                  valueKey: 'url',
+                })();
+                createMessage.success('文件删除成功');
+              } else {
+                createMessage.error(res.message || '删除失败');
+              }
+            } catch (error) {
+              console.error('删除文件时出错:', error);
+              createMessage.error('删除文件时发生错误');
+            }
+          },
         },
       ];
       return <TableAction actions={actions} outside={true} />;
@@ -130,11 +183,38 @@ export function createPreviewActionColumn({
         {
           label: t('component.upload.del'),
           color: 'error',
-          onClick: handleRemove.bind(null, {
-            record,
-            uidKey: 'uid',
-            valueKey: 'url',
-          }),
+          onClick: async () => {
+            // 修复：从record中提取正确的fileName
+            let fileName = record.fileName || record.name;
+
+            // 如果没有fileName，但有url，则从url中提取文件名
+            if (!fileName && record.url) {
+              // 从URL中提取文件名部分
+              fileName = record.url.split('/').pop();
+            }
+
+            if (!fileName) {
+              createMessage.error('缺少文件名，无法删除');
+              return;
+            }
+
+            try {
+              const res = await deleteFileApi(fileName);
+              if (res.code === 0) {
+                handleRemove.bind(null, {
+                  record,
+                  uidKey: 'uid',
+                  valueKey: 'url',
+                })();
+                createMessage.success('文件删除成功');
+              } else {
+                createMessage.error(res.message || '删除失败');
+              }
+            } catch (error) {
+              console.error('删除文件时出错:', error);
+              createMessage.error('删除文件时发生错误');
+            }
+          },
         },
         {
           label: t('component.upload.download'),
