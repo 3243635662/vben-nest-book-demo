@@ -1,14 +1,9 @@
 <template>
-  <PageWrapper
-    title="分步表单"
-    contentBackground
-    content=" 将一个冗长或用户不熟悉的表单任务分成多个步骤，指导用户完成。"
-    contentClass="p-4"
-  >
+  <PageWrapper title="创建图书" contentBackground content="请按照要求填写信息" contentClass="p-4">
     <div class="step-form-form">
       <Steps :current="current">
-        <Steps.Step title="填写转账信息" />
-        <Steps.Step title="确认转账信息" />
+        <Steps.Step title="填写图书信息" />
+        <Steps.Step title="确认图书信息" />
         <Steps.Step title="完成" />
       </Steps>
     </div>
@@ -19,6 +14,7 @@
         @next="handleStep2Next"
         v-show="current === 1"
         v-if="state.initStep2"
+        :step1Data="state.step1Data"
       />
       <Step3 v-show="current === 2" @redo="handleRedo" v-if="state.initStep3" />
     </div>
@@ -39,12 +35,14 @@
   const state = reactive({
     initStep2: false,
     initStep3: false,
+    step1Data: {},
   });
 
   function handleStep1Next(step1Values: any) {
     current.value++;
     state.initStep2 = true;
-    console.log(step1Values);
+    state.step1Data = step1Values;
+    console.log('第一步数据:', step1Values);
   }
 
   function handleStepPrev() {
