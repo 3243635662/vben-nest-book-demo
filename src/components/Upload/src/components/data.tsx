@@ -76,7 +76,7 @@ function getFileIconUrl(fileName: string): string {
   );
 }
 
-// 文件上传列表
+// 文件上传model的列表
 export function createTableColumns(): FileBasicColumn[] {
   return [
     {
@@ -147,6 +147,7 @@ export function createTableColumns(): FileBasicColumn[] {
     },
   ];
 }
+// 文件上传的操作选项
 export function createActionColumn(handleRemove: Function): FileBasicColumn {
   return {
     width: 120,
@@ -219,7 +220,7 @@ export function createActionColumn(handleRemove: Function): FileBasicColumn {
     },
   };
 }
-// 文件预览列表
+// 文件预览modal列表 修复不同类型文件的图标（缩略图）显示
 export function createPreviewColumns(): BasicColumn[] {
   return [
     {
@@ -228,7 +229,13 @@ export function createPreviewColumns(): BasicColumn[] {
       width: 100,
       customRender: ({ record }) => {
         const { url } = (record as PreviewFileItem) || {};
-        return isImgTypeByName(url) && <ThumbUrl fileUrl={url} />;
+        if (isImgTypeByName(url)) {
+          return <ThumbUrl fileUrl={url} />;
+        } else {
+          // 针对非图标文件实现 新的（在线的）图片样式
+          const fileIconUrl = getFileIconUrl(url);
+          return <ThumbUrl fileUrl={fileIconUrl} />;
+        }
       },
     },
     {
@@ -260,21 +267,9 @@ export function createPreviewActionColumn({
           color: 'error',
           onClick: async () => {
             // 获取文件状态
-            const { status, fileName, url, name } = record;
+            const { fileName, url, name } = record;
 
-            // 情况1：文件未上传（状态不是SUCCESS）
-            if (status !== UploadResultStatus.SUCCESS) {
-              // 仅前端删除，不调用后端接口
-              handleRemove.bind(null, {
-                record,
-                uidKey: 'uid',
-                valueKey: 'url',
-              })();
-              createMessage.success('文件删除成功');
-              return;
-            }
-
-            // 情况2：文件已上传，需要调用后端删除接口
+            // 调用后端删除接口
             let deleteFileName = fileName || name;
 
             // 如果没有fileName，但有url，则从url中提取文件名
@@ -290,7 +285,7 @@ export function createPreviewActionColumn({
             try {
               const res = await deleteFileApi(deleteFileName);
 
-              // 判断删除是否成功（兼容不同的返回格式）
+              // 判断删除是否成功
               if (res && (res as any) !== false) {
                 // 后端删除成功后，执行前端删除
                 handleRemove.bind(null, {

@@ -10,6 +10,7 @@
     <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" />
   </BasicModal>
 </template>
+
 <script lang="ts" setup>
   import { watch, ref } from 'vue';
   import FileList from './FileList.vue';
@@ -37,6 +38,7 @@
   const { t } = useI18n();
 
   const fileListRef = ref<BaseFileItem[] | Array<any>>([]);
+
   watch(
     () => props.previewColumns,
     () => {
@@ -57,23 +59,41 @@
     () => props.value,
     (value) => {
       if (!isArray(value)) value = [];
+
+      // 如果提供了beforePreviewData回调，使用它处理数据
       if (props.beforePreviewData) {
-        value = props.beforePreviewData(value) as any;
-        fileListRef.value = value;
-        return;
+        try {
+          value = props.beforePreviewData(value) as any;
+        } catch (error) {
+          console.error('beforePreviewData处理失败:', error);
+        }
       }
+
+      // 确保数据格式正确
       fileListRef.value = value
         .filter((item) => !!item)
         .map((item) => {
-          if (typeof item != 'object') {
-            console.error('return value should be object');
-            return;
+          // 如果已经是正确的格式，直接返回
+          if (typeof item === 'object' && item.url && item.uid) {
+            return item;
           }
+
+          // 如果是字符串，转换为对象格式
+          if (typeof item === 'string') {
+            return {
+              uid: buildUUID(),
+              url: item,
+              type: item.split('.').pop() || '',
+              name: item.split('/').pop() || '',
+            };
+          }
+
+          // 其他情况确保有必要的字段
           return {
-            uid: item?.uid,
-            url: item?.url,
-            type: item?.url?.split('.').pop() || '',
-            name: item?.url?.split('/').pop() || '',
+            uid: item?.uid || buildUUID(),
+            url: item?.url || item,
+            type: item?.type || item?.url?.split('.').pop() || '',
+            name: item?.name || item?.url?.split('/').pop() || '',
           };
         });
     },
@@ -90,6 +110,7 @@
       emit('list-change', fileListRef.value, valueKey);
     }
   }
+
   // 添加
   function handleAdd(obj: Record<handleFnKey, any>) {
     let { record = {}, valueKey = 'url', uidKey = 'uid' } = obj;
@@ -101,6 +122,7 @@
     fileListRef.value = [...fileListRef.value, record];
     emit('list-change', fileListRef.value, valueKey);
   }
+
   // 下载
   function handleDownload(record: PreviewFileItem) {
     const { url = '' } = record;
