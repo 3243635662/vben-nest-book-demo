@@ -7,7 +7,7 @@
         <Steps.Step title="完成" />
       </Steps>
     </div>
-    <div class="mt-5">
+    <div class="mt-5 flex justify-center">
       <Step1 @next="handleStep1Next" v-show="current === 0" />
       <Step2
         @prev="handleStepPrev"
@@ -16,7 +16,13 @@
         v-if="state.initStep2"
         :step1Data="state.step1Data"
       />
-      <Step3 v-show="current === 2" @redo="handleRedo" v-if="state.initStep3" />
+      <Step3
+        v-show="current === 2"
+        @redo="handleRedo"
+        @view="handleView"
+        v-if="state.initStep3"
+        :bookInfo="state.bookInfo"
+      />
     </div>
   </PageWrapper>
 </template>
@@ -27,15 +33,18 @@
   import Step3 from './Step3.vue';
   import { PageWrapper } from '@/components/Page';
   import { Steps } from 'ant-design-vue';
+  import { useRouter } from 'vue-router';
 
   defineOptions({ name: 'FormStepPage' });
 
   const current = ref(0);
+  const router = useRouter();
 
   const state = reactive({
     initStep2: false,
     initStep3: false,
     step1Data: {},
+    bookInfo: {},
   });
 
   function handleStep1Next(step1Values: any) {
@@ -52,13 +61,22 @@
   function handleStep2Next(step2Values: any) {
     current.value++;
     state.initStep3 = true;
-    console.log(step2Values);
+    // 存储图书信息
+    state.bookInfo = step2Values;
+    console.log('图书信息:', step2Values);
   }
 
   function handleRedo() {
     current.value = 0;
     state.initStep2 = false;
     state.initStep3 = false;
+    state.bookInfo = {};
+  }
+
+  function handleView() {
+    router.push({
+      path: '/book/list',
+    });
   }
 </script>
 <style lang="less" scoped>

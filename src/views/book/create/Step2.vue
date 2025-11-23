@@ -85,7 +85,8 @@
   import { Alert, Divider, Descriptions } from 'ant-design-vue';
   // 导入获取文件图标URL的函数
   import { getFileIconUrl } from '@/components/Upload/src/components/data';
-  import { watch, computed, unref } from 'vue';
+  import { createBookApi } from '@/api/sys/upload';
+  import { computed } from 'vue';
   const { createMessage } = useMessage();
   // 安全获取封面数据
   const coverData = computed(() => {
@@ -194,30 +195,29 @@
 
   // 添加对step1Data变化的监听，更新表单默认值
 
-  watch(
-    () => props.step1Data,
-    (newData) => {
-      // 可以根据需要在这里更新表单默认值
-      console.log('收到第一步数据:', unref(newData));
-      // 调试封面和文件数据
-      if (newData.cover) {
-        if (Array.isArray(newData.cover)) {
-          // console.log('封面数组长度:', newData.cover.length);
-          if (newData.cover.length > 0) {
-            // console.log('第一个封面项:', newData.cover[0]);
-          }
-        }
-      }
-      if (newData.file) {
-        // console.log('文件数据类型:', typeof newData.file);
-        // console.log('文件数据:', newData.file);
-        if (Array.isArray(newData.file)) {
-          // console.log('文件数组长度:', newData.file.length);
-        }
-      }
-    },
-    { immediate: true },
-  );
+  // watch(
+  //   () => props.step1Data,
+  //   (newData) => {
+  //     // 可以根据需要在这里更新表单默认值
+  //     // 调试封面和文件数据
+  //     if (newData.cover) {
+  //       if (Array.isArray(newData.cover)) {
+  //         // console.log('封面数组长度:', newData.cover.length);
+  //         if (newData.cover.length > 0) {
+  //           // console.log('第一个封面项:', newData.cover[0]);
+  //         }
+  //       }
+  //     }
+  //     if (newData.file) {
+  //       // console.log('文件数据类型:', typeof newData.file);
+  //       // console.log('文件数据:', newData.file);
+  //       if (Array.isArray(newData.file)) {
+  //         // console.log('文件数组长度:', newData.file.length);
+  //       }
+  //     }
+  //   },
+  //   { immediate: true },
+  // );
 
   async function customSubmitFunc() {
     try {
@@ -246,27 +246,74 @@
         ),
       );
 
-      const bookData = {
+      // 处理文件和封面数据，确保只传递URL字符串而不是完整对象
+      const processedStep1Data = {
         ...props.step1Data,
-        ...filteredValues,
       };
 
-      setTimeout(() => {
-        setProps({
-          submitButtonOptions: {
-            loading: false,
-          },
-        });
-        emit('next', bookData);
-      }, 1500);
+      // 处理封面数据
+      if (processedStep1Data.cover) {
+        if (Array.isArray(processedStep1Data.cover) && processedStep1Data.cover.length > 0) {
+          const firstCover = processedStep1Data.cover[0];
+          processedStep1Data.cover = firstCover?.url || firstCover?.filePath || firstCover || '';
+        }
+      }
+
+      // 处理文件数据
+      if (processedStep1Data.file) {
+        if (Array.isArray(processedStep1Data.file) && processedStep1Data.file.length > 0) {
+          const firstFile = processedStep1Data.file[0];
+          processedStep1Data.file = firstFile?.url || firstFile?.filePath || firstFile || '';
+        }
+      }
+
+      // 清理数据，移除空值和undefined值，确保后端接收到的数据格式正确
+      const cleanData = (obj: any) => {
+        const result: any = {};
+        for (const key in obj) {
+          if (obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
+            result[key] = obj[key];
+          }
+        }
+        return result;
+      };
+
+      const bookData = {
+        ...cleanData(processedStep1Data),
+        ...cleanData(filteredValues),
+      };
+
+      // 确保必要字段存在
+      if (!bookData.title) {
+        createMessage.error('图书标题不能为空');
+        return;
+      }
+
+      // 调用API创建图书
+      try {
+        const response = await createBookApi(bookData);
+
+        if (response === true) {
+          createMessage.success('图书创建成功');
+          // 传递图书信息到第三步
+          emit('next', {
+            title: bookData.title,
+            author: bookData.author || '匿名',
+            cover: bookData.cover || '',
+            file: bookData.file || '',
+            publisher: bookData.publisher || '未知出版社',
+            categoryName: bookData.categoryName || '',
+          });
+        }
+      } catch (error) {
+        createMessage.error('图书创建失败,联系管理员');
+      }
     } catch (error) {
       setProps({
         submitButtonOptions: {
           loading: false,
         },
       });
-      console.error(error);
-      throw error;
     }
   }
 </script>
