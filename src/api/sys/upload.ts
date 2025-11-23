@@ -9,6 +9,8 @@ const { uploadUrl = '' } = useGlobSetting();
 /**
  * @description: Upload interface
  */
+
+// 上传接口
 export function uploadApi(
   params: UploadFileParams,
   onUploadProgress: (progressEvent: AxiosProgressEvent) => void,
@@ -22,8 +24,15 @@ export function uploadApi(
   );
 }
 
+// 删除接口
 export const deleteFileApi = (fileName: string) => {
-  return defHttp.delete<{ code: number; result: any; message?: string }>({
-    url: `/book/file?fileName=${encodeURIComponent(fileName)}`,
-  });
+  return defHttp.delete<{ code: number; result: any; message?: string }>(
+    {
+      url: `/book/file?fileName=${encodeURIComponent(fileName)}`,
+    },
+    {
+      // 添加错误处理，确保返回统一的格式
+      errorMessageMode: 'none',
+    },
+  );
 };

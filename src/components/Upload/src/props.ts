@@ -48,18 +48,19 @@ export const basicProps = {
   // 文件最大多少MB
   maxSize: {
     type: Number as PropType<number>,
-    default: 2,
+    default: 10,
   },
   // 最大数量的文件，Infinity不限制
   maxNumber: {
     type: Number as PropType<number>,
-    default: 2,
+    default: 1,
   },
   // 根据后缀，或者其他
   accept: {
     type: Array as PropType<string[]>,
     default: () => [],
   },
+  // 控制是否在一次文件对话框选择多个多个文件
   multiple: {
     type: Boolean as PropType<boolean>,
     default: false,

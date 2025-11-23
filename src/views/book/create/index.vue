@@ -42,7 +42,7 @@
     current.value++;
     state.initStep2 = true;
     state.step1Data = step1Values;
-    console.log('第一步数据:', step1Values);
+    // console.log('第一步数据:', step1Values);
   }
 
   function handleStepPrev() {

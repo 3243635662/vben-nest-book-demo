@@ -19,10 +19,13 @@ export const step1Schemas: FormSchema[] = [
     field: 'cover',
     component: 'ImageUpload',
     label: '封面图片',
+
     colProps: {
       span: 8,
     },
     componentProps: {
+      // 封面最多一个
+      maxNumber: 1,
       // 修改resultField以获取完整结果对象
       resultField: 'result',
       api: (file, progress) => {
@@ -66,6 +69,8 @@ export const step1Schemas: FormSchema[] = [
     component: 'Upload',
     label: '电子书文件',
     componentProps: {
+      // 文件最多1
+      maxNumber: 1,
       // 将resultField从'file.url'改为'result'以获取完整响应
       resultField: 'result',
       api: (file, progress) => {
@@ -118,19 +123,6 @@ export const step1Schemas: FormSchema[] = [
     },
   },
   {
-    field: 'categoryName',
-    component: 'Input',
-    label: '分类名称',
-    required: false,
-    defaultValue: '未知分类',
-    componentProps: {
-      placeholder: '请输入分类名称（可选）',
-    },
-    colProps: {
-      span: 24,
-    },
-  },
-  {
     field: 'language',
     component: 'Input',
     label: '语言',
@@ -148,43 +140,13 @@ export const step1Schemas: FormSchema[] = [
 // 第二步：确认图书信息（简洁确认）
 export const step2Schemas: FormSchema[] = [
   {
-    field: 'description',
-    component: 'InputTextArea',
-    label: '图书简介',
-    required: false,
-    defaultValue: '',
-    componentProps: {
-      placeholder: '请输入图书简介（可选）',
-      rows: 3,
-    },
-    colProps: {
-      span: 24,
-    },
-  },
-  {
-    field: 'tags',
+    field: 'categoryName',
     component: 'Input',
     label: '标签',
     required: false,
     defaultValue: '',
     componentProps: {
-      placeholder: '请输入标签，用逗号分隔（可选）',
-    },
-    colProps: {
-      span: 24,
-    },
-  },
-  {
-    field: 'status',
-    component: 'RadioGroup',
-    label: '发布状态',
-    required: true,
-    defaultValue: 'draft',
-    componentProps: {
-      options: [
-        { label: '草稿', value: 'draft' },
-        { label: '发布', value: 'published' },
-      ],
+      placeholder: '请输入分类，用逗号分隔（可选）',
     },
     colProps: {
       span: 24,

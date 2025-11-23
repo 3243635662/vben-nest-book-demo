@@ -27,6 +27,11 @@
     <div class="upload-modal-toolbar">
       <Alert :message="getHelpText" type="info" banner class="upload-modal-toolbar__text" />
 
+      <!-- 解释：
+      accept： 文件类型限制
+      multiple： 一次文件选择中是否可以选择多个文件
+      before-upload： 上传前的回调，用于校验文件
+      -->
       <Upload
         :accept="getStringAccept"
         :multiple="multiple"
@@ -39,6 +44,7 @@
         </a-button>
       </Upload>
     </div>
+    <!-- 文件列表 -->
     <FileList
       v-model:dataSource="fileListRef"
       :columns="columns"
@@ -61,6 +67,7 @@
   import { createTableColumns, createActionColumn } from './data';
   // utils
   import { checkImgType, getBase64WithFile } from '../helper';
+  import { getFileIconUrl } from './data';
   import { buildUUID } from '@/utils/uuid';
   import { isFunction } from '@/utils/is';
   import { warn } from '@/utils/log';
@@ -68,6 +75,7 @@
   import { useI18n } from '@/hooks/web/useI18n';
   import { get } from 'lodash-es';
 
+  // 从props导入各种配置项
   const props = defineProps({
     ...basicProps,
     previewFileList: {
@@ -124,7 +132,7 @@
   });
 
   // 上传前校验
-  function beforeUpload(file: File) {
+  async function beforeUpload(file: File) {
     const { size, name } = file;
     const { maxSize } = props;
     // 设置最大值，则判断
@@ -132,7 +140,7 @@
       createMessage.error(t('component.upload.maxSizeMultiple', [maxSize]));
       return false;
     }
-
+    // 基础文件信息
     const commonItem = {
       uuid: buildUUID(),
       file,
@@ -143,39 +151,29 @@
     };
     // 生成图片缩略图
     if (checkImgType(file)) {
-      // beforeUpload，如果异步会调用自带上传方法
-      // file.thumbUrl = await getBase64(file);
-      getBase64WithFile(file).then(({ result: thumbUrl }) => {
-        fileListRef.value = [
-          ...unref(fileListRef),
-          {
-            thumbUrl,
-            ...commonItem,
-          },
-        ];
-      });
+      try {
+        const { result: thumbUrl } = await getBase64WithFile(file);
+        fileListRef.value = [...unref(fileListRef), { ...commonItem, thumbUrl }];
+      } catch (error) {
+        console.error('生成缩略图失败:', error);
+        fileListRef.value = [...unref(fileListRef), commonItem];
+      }
     } else {
-      fileListRef.value = [...unref(fileListRef), commonItem];
+      // 非图片文件添加默认thumbUrl（根据文件类型）
+      const fileIconUrl = getFileIconUrl(name);
+      fileListRef.value = [...unref(fileListRef), { ...commonItem, thumbUrl: fileIconUrl }];
     }
     return false;
   }
 
-  // 删除
-  function handleRemove(obj: Record<handleFnKey, any>) {
-    let { record = {}, uidKey = 'uid' } = obj;
-    const index = fileListRef.value.findIndex((item) => item[uidKey] === record[uidKey]);
-    if (index !== -1) {
-      const removed = fileListRef.value.splice(index, 1);
-      emit('delete', removed[0][uidKey]);
-    }
-  }
-
+  // 上传
   async function uploadApiByItem(item: FileItem) {
     const { api } = props;
     if (!api || !isFunction(api)) {
       return warn('upload api must exist and be a function');
     }
     try {
+      // 开始上传 状态设置成上传中
       item.status = UploadResultStatus.UPLOADING;
       const ret = await props.api?.(
         {
@@ -191,8 +189,6 @@
           item.percent = complete;
         },
       );
-      // 修复：直接从ret中获取result（后端响应result在根对象）
-      console.log('ret:', ret);
       const resultData = ret?.result || {};
       item.status = UploadResultStatus.SUCCESS;
       item.response = ret;
@@ -252,7 +248,15 @@
       };
     }
   }
-
+  // 删除
+  function handleRemove(obj: Record<handleFnKey, any>) {
+    let { record = {}, uidKey = 'uid' } = obj;
+    const index = fileListRef.value.findIndex((item) => item[uidKey] === record[uidKey]);
+    if (index !== -1) {
+      const removed = fileListRef.value.splice(index, 1);
+      emit('delete', removed[0][uidKey]);
+    }
+  }
   // 点击开始上传
   async function handleStartUpload() {
     const { maxNumber } = props;
