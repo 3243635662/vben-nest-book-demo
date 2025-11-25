@@ -39,12 +39,6 @@ export const deleteFileApi = (fileName: string) => {
 
 // 创建接口
 export const createBookApi = (data: any) => {
-  // console.log('createBookApi接收到的参数:', params);
-
-  // // 直接创建axios实例进行测试，绕过复杂的拦截器
-  // const testData = JSON.stringify(params);
-  // console.log('准备发送到后端的数据字符串:', testData);
-
   return defHttp.post<boolean>(
     {
       url: '/book/create',

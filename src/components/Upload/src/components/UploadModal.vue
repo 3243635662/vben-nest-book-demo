@@ -73,7 +73,7 @@
   import { warn } from '@/utils/log';
   import FileList from './FileList.vue';
   import { useI18n } from '@/hooks/web/useI18n';
-  import { get } from 'lodash-es';
+  // import { get } from 'lodash-es';
 
   // 从props导入各种配置项
   const props = defineProps({
@@ -189,52 +189,28 @@
           item.percent = complete;
         },
       );
-      const resultData = ret?.result || {};
+
+      // 从响应中提取URL和文件名，兼容不同的响应格式
+      const result = ret.result || ret;
+      const url = result.url || result.filePath || '';
+      const fileName = result.fileName || result.name || item.name;
+
+      // 设置文件名到item中，用于删除操作
+      if (fileName) {
+        (item as any).fileName = fileName;
+      }
+
+      // 设置URL
+      item.url = url;
       item.status = UploadResultStatus.SUCCESS;
-      item.response = ret;
+      item.response = {
+        ...(item.response || {}),
+        url: url,
+        fileName: fileName,
+        result: result, // 保存完整的响应数据
+        data: ret.data || result, // 保存data结构，确保有时间戳文件名
+      };
 
-      // 使用类型断言解决TypeScript类型错误
-      const typedItem = item as FileItem & { fileName?: string; url?: string };
-
-      // 确保保存fileName字段用于删除操作
-      // 仅在后端返回fileName时才保存（问题点）
-      // 正确代码（无需修改）
-      if (resultData.fileName) {
-        typedItem.fileName = resultData.fileName; // 现在能正确获取后端返回的fileName
-      } else if (resultData.filePath) {
-        typedItem.fileName = resultData.filePath.split('/').pop();
-      }
-
-      if (props.resultField) {
-        // 适配预览组件而进行封装
-        const responseData = {
-          code: 0,
-          message: 'upload Success!',
-          url: get(ret, props.resultField),
-        };
-
-        // 确保response中包含原始result数据
-        if (resultData.filePath) {
-          responseData.url = resultData.filePath;
-        }
-
-        item.response = responseData;
-      } else {
-        // 确保response对象存在
-        if (!item.response) {
-          item.response = {};
-        }
-
-        // 确保response中包含必要的字段
-        if (resultData.filePath) {
-          (item.response as any).url = resultData.filePath;
-        }
-      }
-
-      // 确保url字段也正确设置，用于预览
-      if (resultData.filePath) {
-        typedItem.url = resultData.filePath;
-      }
       return {
         success: true,
         error: null,
@@ -254,7 +230,30 @@
     const index = fileListRef.value.findIndex((item) => item[uidKey] === record[uidKey]);
     if (index !== -1) {
       const removed = fileListRef.value.splice(index, 1);
-      emit('delete', removed[0][uidKey]);
+      const removedItem = removed[0];
+
+      // 获取文件名用于删除操作
+      let fileName = null;
+
+      // 优先使用服务器返回的文件名（带时间戳）
+      if (removedItem.response) {
+        const response = removedItem.response as any;
+
+        if (response.data?.result?.fileName) {
+          fileName = response.data.result.fileName;
+        } else if (response.result?.fileName) {
+          fileName = response.result.fileName;
+        }
+      }
+
+      // 如果没有从response获取到，尝试其他方式
+      if (!fileName) {
+        // 尝试直接使用item的fileName
+        fileName = removedItem.fileName || removedItem.name;
+      }
+
+      // 触发删除事件，传递文件名
+      emit('delete', fileName || removedItem[uidKey]);
     }
   }
   // 点击开始上传
@@ -298,7 +297,9 @@
     for (const item of fileListRef.value) {
       const { status, response } = item;
       if (status === UploadResultStatus.SUCCESS && response) {
-        fileList.push(response.url);
+        // 兼容不同的响应格式
+        const result = response.result || response;
+        fileList.push(result.url || result.filePath);
       }
     }
     // 存在一个上传成功的即可保存
@@ -309,7 +310,7 @@
     closeModal();
     emit('change', fileList);
   }
-
+  // 关闭需要将将这些未保存的文件删除 （前后端）
   // 点击关闭：则所有操作不保存，包括上传的
   async function handleCloseFunc() {
     if (!isUploadingRef.value) {

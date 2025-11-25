@@ -26,16 +26,9 @@ export const step1Schemas: FormSchema[] = [
     componentProps: {
       // 封面最多一个
       maxNumber: 1,
-      // 修改resultField以获取完整结果对象
-      resultField: 'result',
-      api: (file, progress) => {
-        return new Promise((resolve) => {
-          uploadApi(file, progress).then((uploadApiResponse) => {
-            // 保留完整的result数据，包括fileName和filePath
-            resolve(uploadApiResponse.data);
-          });
-        });
-      },
+      // 直接返回URL字符串
+      resultField: 'url',
+      api: uploadApi,
     },
   },
   /*
@@ -71,16 +64,9 @@ export const step1Schemas: FormSchema[] = [
     componentProps: {
       // 文件最多1
       maxNumber: 1,
-      // 将resultField从'file.url'改为'result'以获取完整响应
-      resultField: 'result',
-      api: (file, progress) => {
-        return new Promise((resolve) => {
-          uploadApi(file, progress).then((uploadApiResponse) => {
-            // 直接返回完整响应数据而非包装对象
-            resolve(uploadApiResponse.data);
-          });
-        });
-      },
+      // 直接返回URL字符串
+      resultField: 'url',
+      api: uploadApi,
     },
   },
   {

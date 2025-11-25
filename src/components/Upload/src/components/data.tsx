@@ -160,8 +160,10 @@ export function createActionColumn(handleRemove: Function): FileBasicColumn {
           label: t('component.upload.del'),
           color: 'error',
           onClick: async () => {
-            // 获取文件状态
-            const { status, fileName, url, name } = record;
+            // 获取文件状态 标记：直接从record取出来的fileName是文件的本名不是后端数据的名字 真正的fileName早response.data.result.fileName中
+            const { status, url, response } = record;
+            console.log('普通模式删除记录:', record); // 调试日志
+            console.log('响应数据:', response); // 调试日志
 
             // 情况1：文件未上传（状态不是SUCCESS）
             if (status !== UploadResultStatus.SUCCESS) {
@@ -176,17 +178,13 @@ export function createActionColumn(handleRemove: Function): FileBasicColumn {
             }
 
             // 情况2：文件已上传，需要调用后端删除接口
-            let deleteFileName = fileName;
+            // 优先使用后端返回的fileName（带时间戳），其次使用fileName字段，最后使用name字段
+            let deleteFileName = response?.data?.result?.fileName;
 
             // 如果没有fileName，但有url，则从url中提取文件名
             if (!deleteFileName && url) {
               const urlParts = url.split('/').filter((part) => part.trim() !== '');
               deleteFileName = urlParts.length > 0 ? urlParts.pop() : undefined;
-            }
-
-            // 如果还是没有fileName，尝试使用name字段
-            if (!deleteFileName && name) {
-              deleteFileName = name;
             }
             // 还是没有直接就别删了
             if (!deleteFileName) {
@@ -267,12 +265,28 @@ export function createPreviewActionColumn({
           color: 'error',
           onClick: async () => {
             // 获取文件状态
-            const { fileName, url, name } = record;
+            const { fileName, url, name, response } = record;
 
             // 调用后端删除接口
-            let deleteFileName = fileName || name;
 
-            // 如果没有fileName，但有url，则从url中提取文件名
+            let deleteFileName = null;
+
+            // 首先尝试真正的路径：response.data.result.fileName（带时间戳的文件名）
+            if (response?.data?.result?.fileName) {
+              deleteFileName = response.data.result.fileName;
+              console.log('从response.data.result.fileName获取的文件名:', deleteFileName); // 调试日志
+            }
+            // 然后尝试旧的路径：response.result.fileName
+            else if (response?.result?.fileName) {
+              deleteFileName = response.result.fileName;
+              console.log('从response.result.fileName获取的文件名:', deleteFileName); // 调试日志
+            }
+            // 最后尝试其他字段
+            else if (response?.fileName || fileName || name) {
+              deleteFileName = response?.fileName || fileName || name;
+              console.log('从其他字段获取的文件名:', deleteFileName); // 调试日志
+            }
+
             if (!deleteFileName && url) {
               deleteFileName = url.split('/').pop();
             }

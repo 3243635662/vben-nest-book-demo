@@ -4,14 +4,7 @@
     <Descriptions :column="1" class="mt-5" bordered>
       <Descriptions.Item label="书名"> {{ step1Data.title }} </Descriptions.Item>
       <Descriptions.Item label="封面图片" v-if="coverData">
-        <div v-if="Array.isArray(coverData) && coverData.length > 0">
-          <img
-            :src="coverData[0]?.url || coverData[0]?.filePath"
-            alt="封面图片"
-            style="max-width: 200px; max-height: 300px; border-radius: 4px"
-          />
-        </div>
-        <div v-else-if="typeof coverData === 'string'">
+        <div v-if="typeof coverData === 'string'">
           <img
             :src="coverData"
             alt="封面图片"
@@ -23,17 +16,7 @@
         </div>
       </Descriptions.Item>
       <Descriptions.Item label="电子书文件" v-if="fileData">
-        <div v-if="Array.isArray(fileData) && fileData.length > 0">
-          <div v-for="(file, index) in fileData" :key="index" style="margin-bottom: 8px">
-            <img
-              :src="getSafeFileIconUrl(file)"
-              alt="文件图标"
-              style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle"
-            />
-            <span>{{ getSafeFileName(file) }}</span>
-          </div>
-        </div>
-        <div v-else-if="typeof fileData === 'string'">
+        <div v-if="typeof fileData === 'string'">
           <img
             :src="getSafeFileIconUrl(fileData)"
             alt="文件图标"
@@ -88,42 +71,54 @@
   import { createBookApi } from '@/api/sys/upload';
   import { computed } from 'vue';
   const { createMessage } = useMessage();
-  // 安全获取封面数据
+  // 安全获取封面数据 - 增加调试信息
   const coverData = computed(() => {
     const cover = props.step1Data?.cover;
+    console.log('Step2收到的cover数据:', cover, '类型:', typeof cover);
+
     if (!cover) return null;
 
-    try {
-      if (Array.isArray(cover)) {
-        return cover.length > 0 ? cover : null;
-      }
-      if (typeof cover === 'string') {
-        return cover;
-      }
-      return null;
-    } catch (error) {
-      console.error('处理封面数据时出错:', error);
-      return null;
+    // 现在直接是URL字符串，无需复杂处理
+    if (typeof cover === 'string') {
+      return cover;
     }
+
+    // 兼容处理：如果是数组，尝试提取URL
+    if (Array.isArray(cover) && cover.length > 0) {
+      return cover[0]?.url || cover[0]?.data?.url || cover[0]?.response?.url || '';
+    }
+
+    // 兼容处理：如果是对象，尝试提取URL
+    if (typeof cover === 'object' && cover !== null) {
+      return cover.url || cover.data?.url || cover.response?.url || '';
+    }
+
+    return null;
   });
 
-  // 安全获取文件数据
+  // 安全获取文件数据 - 增加调试信息
   const fileData = computed(() => {
     const file = props.step1Data?.file;
+    console.log('Step2收到的file数据:', file, '类型:', typeof file);
+
     if (!file) return null;
 
-    try {
-      if (Array.isArray(file)) {
-        return file.length > 0 ? file : null;
-      }
-      if (typeof file === 'string') {
-        return file;
-      }
-      return null;
-    } catch (error) {
-      console.error('处理文件数据时出错:', error);
-      return null;
+    // 现在直接是URL字符串，无需复杂处理
+    if (typeof file === 'string') {
+      return file;
     }
+
+    // 兼容处理：如果是数组，尝试提取URL
+    if (Array.isArray(file) && file.length > 0) {
+      return file[0]?.url || file[0]?.data?.url || file[0]?.response?.url || '';
+    }
+
+    // 兼容处理：如果是对象，尝试提取URL
+    if (typeof file === 'object' && file !== null) {
+      return file.url || file.data?.url || file.response?.url || '';
+    }
+
+    return null;
   });
 
   // 安全获取文件图标URL
@@ -246,63 +241,58 @@
         ),
       );
 
-      // 处理文件和封面数据，确保只传递URL字符串而不是完整对象
-      const processedStep1Data = {
+      // 直接使用step1Data，现在上传组件直接返回URL字符串
+      const bookData = {
         ...props.step1Data,
+        ...filteredValues,
+        // 确保cover和file是字符串
+        cover: typeof props.step1Data.cover === 'string' ? props.step1Data.cover : '',
+        file: typeof props.step1Data.file === 'string' ? props.step1Data.file : '',
       };
 
-      // 处理封面数据
-      if (processedStep1Data.cover) {
-        if (Array.isArray(processedStep1Data.cover) && processedStep1Data.cover.length > 0) {
-          const firstCover = processedStep1Data.cover[0];
-          processedStep1Data.cover = firstCover?.url || firstCover?.filePath || firstCover || '';
-        }
-      }
-
-      // 处理文件数据
-      if (processedStep1Data.file) {
-        if (Array.isArray(processedStep1Data.file) && processedStep1Data.file.length > 0) {
-          const firstFile = processedStep1Data.file[0];
-          processedStep1Data.file = firstFile?.url || firstFile?.filePath || firstFile || '';
-        }
-      }
+      console.log('合并后的数据:', bookData);
 
       // 清理数据，移除空值和undefined值，确保后端接收到的数据格式正确
       const cleanData = (obj: any) => {
         const result: any = {};
         for (const key in obj) {
-          if (obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
+          // 特殊处理cover和file字段，保留空字符串
+          if (key === 'cover' || key === 'file') {
+            if (obj[key] !== null && obj[key] !== undefined) {
+              result[key] = obj[key];
+            }
+          } else if (obj[key] !== '' && obj[key] !== null && obj[key] !== undefined) {
             result[key] = obj[key];
           }
         }
         return result;
       };
 
-      const bookData = {
-        ...cleanData(processedStep1Data),
-        ...cleanData(filteredValues),
-      };
+      // 清理数据
+      const finalBookData = cleanData(bookData);
+      console.log('最终清理后的数据:', finalBookData);
 
       // 确保必要字段存在
-      if (!bookData.title) {
+      if (!finalBookData.title) {
         createMessage.error('图书标题不能为空');
         return;
       }
+      console.log('最终提交数据:', finalBookData);
 
       // 调用API创建图书
       try {
-        const response = await createBookApi(bookData);
+        const response = await createBookApi(finalBookData);
 
         if (response === true) {
           createMessage.success('图书创建成功');
           // 传递图书信息到第三步
           emit('next', {
-            title: bookData.title,
-            author: bookData.author || '匿名',
-            cover: bookData.cover || '',
-            file: bookData.file || '',
-            publisher: bookData.publisher || '未知出版社',
-            categoryName: bookData.categoryName || '',
+            title: finalBookData.title,
+            author: finalBookData.author || '匿名',
+            cover: finalBookData.cover || '',
+            file: finalBookData.file || '',
+            publisher: finalBookData.publisher || '未知出版社',
+            categoryName: finalBookData.categoryName || '',
           });
         }
       } catch (error) {

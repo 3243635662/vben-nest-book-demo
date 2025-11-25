@@ -9,6 +9,7 @@ export enum UploadResultStatus {
 }
 
 export interface FileItem {
+  [x: string]: any;
   thumbUrl?: string;
   name: string;
   size: string | number;
