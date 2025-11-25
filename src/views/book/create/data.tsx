@@ -64,8 +64,8 @@ export const step1Schemas: FormSchema[] = [
     componentProps: {
       // 文件最多1
       maxNumber: 1,
-      // 直接返回URL字符串
-      resultField: 'url',
+      // 返回完整对象
+      resultField: '', // 空字符串表示返回完整对象
       api: uploadApi,
     },
   },

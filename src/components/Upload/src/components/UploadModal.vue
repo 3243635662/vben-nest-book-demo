@@ -191,10 +191,10 @@
       );
 
       // 从响应中提取URL和文件名，兼容不同的响应格式
-      const result = ret.result || ret;
-      const url = result.url || result.filePath || '';
-      const fileName = result.fileName || result.name || item.name;
+      const result = ret.data.result;
 
+      const url = result.url || result.filePath || '';
+      const fileName = result.fileName;
       // 设置文件名到item中，用于删除操作
       if (fileName) {
         (item as any).fileName = fileName;
@@ -285,23 +285,24 @@
   //   点击保存
   function handleOk() {
     const { maxNumber } = props;
-
+    // 如果文件数字数组中的成功状态的文件数量大于最大上传数量，则提示警告
     if (fileListRef.value.length > maxNumber) {
       return createMessage.warning(t('component.upload.maxNumber', [maxNumber]));
     }
+    // 如果正在上传中，则提示警告
     if (isUploadingRef.value) {
       return createMessage.warning(t('component.upload.saveWarn'));
     }
-    const fileList: string[] = [];
+    const fileList: any[] = [];
 
     for (const item of fileListRef.value) {
       const { status, response } = item;
       if (status === UploadResultStatus.SUCCESS && response) {
-        // 兼容不同的响应格式
-        const result = response.result || response;
-        fileList.push(result.url || result.filePath);
+        // 返回完整的result对象，包含url、fileName、filePath
+        fileList.push(unref(response.result));
       }
     }
+
     // 存在一个上传成功的即可保存
     if (fileList.length <= 0) {
       return createMessage.warning(t('component.upload.saveError'));

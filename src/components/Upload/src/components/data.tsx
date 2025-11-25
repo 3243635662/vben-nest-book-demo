@@ -147,6 +147,7 @@ export function createTableColumns(): FileBasicColumn[] {
     },
   ];
 }
+
 // 文件上传的操作选项
 export function createActionColumn(handleRemove: Function): FileBasicColumn {
   return {
@@ -218,7 +219,8 @@ export function createActionColumn(handleRemove: Function): FileBasicColumn {
     },
   };
 }
-// 文件预览modal列表 修复不同类型文件的图标（缩略图）显示
+
+// 文件预览modal列表 不同类型文件的图标（缩略图）显示
 export function createPreviewColumns(): BasicColumn[] {
   return [
     {
@@ -226,26 +228,37 @@ export function createPreviewColumns(): BasicColumn[] {
       title: t('component.upload.legend'),
       width: 100,
       customRender: ({ record }) => {
-        const { url } = (record as PreviewFileItem) || {};
-        if (isImgTypeByName(url)) {
+        const { url, fileName } = record as PreviewFileItem;
+        console.log('预览列接收到的record数据:', record);
+
+        // 优先使用文件名判断文件类型
+        const fileNameToUse = fileName || url?.split('/').pop() || '';
+
+        if (url && (url.startsWith('data:image/') || isImgTypeByName(fileNameToUse))) {
           return <ThumbUrl fileUrl={url} />;
         } else {
           // 针对非图标文件实现 新的（在线的）图片样式
-          const fileIconUrl = getFileIconUrl(url);
+          const fileIconUrl = getFileIconUrl(fileNameToUse);
           return <ThumbUrl fileUrl={fileIconUrl} />;
         }
       },
     },
     {
-      dataIndex: 'name',
-      title: t('component.upload.fileName'),
-      align: 'left',
+      dataIndex: 'fileName',
+      title: t('component.upload.backFileName'),
+      align: 'center',
+      customRender: ({ record }) => {
+        const { fileName } = record as any;
+        // 优先显示服务器返回的文件名，其次显示原始文件名
+        return fileName || record?.url?.split('/').pop() || '';
+      },
     },
   ];
 }
 
 export { getFileIconUrl };
 
+// TODO 完善删除
 export function createPreviewActionColumn({
   handleRemove,
   handleDownload,

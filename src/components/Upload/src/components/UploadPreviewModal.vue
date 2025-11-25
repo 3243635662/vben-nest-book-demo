@@ -10,7 +10,7 @@
     <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" />
   </BasicModal>
 </template>
-
+<!-- 这里真正的数据是fileListRef，下面watch会对它进行一个监视改造 -->
 <script lang="ts" setup>
   import { watch, ref } from 'vue';
   import FileList from './FileList.vue';
@@ -39,6 +39,9 @@
 
   const fileListRef = ref<BaseFileItem[] | Array<any>>([]);
 
+  // onMounted(() => {
+  //   console.log(unref(fileListRef));
+  // });
   watch(
     () => props.previewColumns,
     () => {
@@ -58,6 +61,7 @@
   watch(
     () => props.value,
     (value) => {
+      console.log('UploadPreviewModal接收到的数据:', props.value); // 调试日志
       if (!isArray(value)) value = [];
 
       // 如果提供了beforePreviewData回调，使用它处理数据
@@ -70,23 +74,24 @@
       }
 
       // 确保数据格式正确
-
       fileListRef.value = value
         .filter((item) => !!item)
         .map((item) => {
           console.log('处理预览数据项:', item); // 调试日志
 
           // 如果已经是正确的格式，直接返回
-          if (typeof item === 'object' && item.url && item.uid) {
+          if (typeof item === 'object' && item.url) {
             console.log('已有格式，直接返回:', item); // 调试日志
-            // 确保包含正确的响应数据结构
             return {
               ...item,
+              // 确保包含必要的字段
+              uid: item.uid || buildUUID(),
+              name: item.name || item.fileName || item.url.split('/').pop() || '',
+              type: item.type || item.name?.split('.')?.pop() || item.url.split('.').pop() || '',
               // 保留后端返回的fileName（带时间戳的文件名）
-              fileName:
-                item.fileName || item.response?.fileName || item.response?.data?.result?.fileName,
+              fileName: item.fileName || item.name,
               // 保留完整的响应数据
-              response: item.response,
+              response: item.response || item,
             };
           }
 
@@ -97,6 +102,7 @@
               url: item,
               type: item.split('.').pop() || '',
               name: item.split('/').pop() || '',
+              fileName: item.split('/').pop() || '',
             };
             console.log('字符串转换:', converted); // 调试日志
             return converted;
@@ -108,11 +114,8 @@
             url: item?.url || item,
             type: item?.type || item?.url?.split('.').pop() || '',
             name: item?.name || item?.url?.split('/').pop() || '',
-            // 保留后端返回的fileName（带时间戳的文件名）
-            fileName:
-              item?.fileName || item?.response?.fileName || item?.response?.data?.result?.fileName,
-            // 保留完整的响应数据
-            response: item?.response,
+            fileName: item?.fileName || item?.name || item?.url?.split('/').pop() || '',
+            response: item?.response || item,
           };
           console.log('对象转换:', converted);
           return converted;

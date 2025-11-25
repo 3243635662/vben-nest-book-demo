@@ -108,6 +108,7 @@
     "maxNumber": "Only upload up to {0} files",
     "legend": "Legend",
     "fileName": "File name",
+    "backFileName": "Back-end file name",
     "fileSize": "File size",
     "fileStatue": "File status",
     "pending": "Pending",
