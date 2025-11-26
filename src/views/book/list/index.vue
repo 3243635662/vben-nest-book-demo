@@ -11,7 +11,6 @@
         @reset="handleReset"
       />
     </template>
-
     <div :class="`${prefixCls}__container`">
       <List>
         <template v-for="item in bookList" :key="item.id">
@@ -32,18 +31,34 @@
                   <div>作者：{{ item.author || '暂无作者' }}</div>
                   <div>出版社：{{ item.publisher || '暂无出版社' }}</div>
                 </div>
-                <div :class="`${prefixCls}__action`">
-                  <template v-for="action in actions" :key="action.icon">
-                    <div :class="`${prefixCls}__action-item`">
-                      <Icon
-                        v-if="action.icon"
-                        :class="`${prefixCls}__action-icon`"
-                        :icon="action.icon"
-                        :color="action.color"
-                      />
-                      {{ action.text }}
-                    </div>
-                  </template>
+                <div :class="`${prefixCls}__action`" class="flex items-center">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    @click="handleEdit(item.id)"
+                    class="mr-2"
+                    preIcon="mdi:page-next-outline"
+                  >
+                    编辑
+                  </a-button>
+                  <a-button
+                    type="primary"
+                    size="small"
+                    @click="handleDelete(item.id)"
+                    danger
+                    preIcon="mdi:page-next-outline"
+                    class="mr-2"
+                  >
+                    删除
+                  </a-button>
+                  <a-button
+                    size="small"
+                    @click="handleRead(item.id)"
+                    color="success"
+                    preIcon="mdi:page-next-outline"
+                  >
+                    看书
+                  </a-button>
                   <span :class="`${prefixCls}__time`">{{
                     formatTime(item.created_at || item.createTime)
                   }}</span>
@@ -79,9 +94,8 @@
 </template>
 <script lang="ts" setup>
   import { Tag, List, Pagination } from 'ant-design-vue';
-  import Icon from '@/components/Icon/Icon.vue';
   import { BasicForm } from '@/components/Form';
-  import { actions, bookList, schemas, initBookList, totalBook, PaginateParams } from './data';
+  import { bookList, schemas, initBookList, totalBook, PaginateParams } from './data';
   import { PageWrapper } from '@/components/Page';
   import { onMounted } from 'vue';
   import { formatToDateTime } from '@/utils/dateUtil';
@@ -138,6 +152,21 @@
     initBookList({
       ...PaginateParams.value,
     });
+  };
+
+  // 编辑按钮点击事件
+  const handleEdit = (bookId: string) => {
+    console.log('编辑图书:', bookId);
+  };
+
+  // 删除按钮点击事件
+  const handleDelete = (bookId: string) => {
+    console.log('删除图书:', bookId);
+  };
+
+  // 看书按钮点击事件
+  const handleRead = (bookId: string) => {
+    console.log('查看图书:', bookId);
   };
 </script>
 <style lang="less" scoped>
@@ -196,33 +225,22 @@
     }
 
     &__action {
+      display: flex;
       position: relative;
+      flex-wrap: wrap;
+      align-items: center;
       margin-top: 10px;
 
-      &-item {
-        display: inline-block;
-        padding: 0 16px;
-        color: @text-color-secondary;
-
-        &:nth-child(1) {
-          padding-left: 0;
-        }
-
-        &:nth-child(1),
-        &:nth-child(2) {
-          border-right: 1px solid @border-color-base;
-        }
-      }
-
-      &-icon {
-        margin-right: 3px;
+      :deep(.ant-btn) {
+        margin-bottom: 8px;
       }
     }
 
     &__time {
-      position: absolute;
-      top: 0;
-      right: 0;
+      position: relative;
+      top: auto;
+      right: auto;
+      margin-left: auto;
       color: rgb(0 0 0 / 45%);
     }
   }

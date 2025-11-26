@@ -224,7 +224,7 @@
 
         if (response === true) {
           // axios 自动将result过滤出来
-          const bookMenuList = await parseEpubApi({
+          const result = await parseEpubApi({
             bookFilePath: finalBookData.file,
           });
 
@@ -238,7 +238,7 @@
             publisher: finalBookData.publisher || '未知出版社',
             categoryName: finalBookData.categoryName || '',
             language: finalBookData.language || '未知语言',
-            bookMenuList: bookMenuList || [],
+            bookMenuList: result || [],
           });
         }
       } catch (error) {

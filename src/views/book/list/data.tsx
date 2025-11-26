@@ -26,7 +26,7 @@ export const initBookList = async (params: GetBookListParams = {}) => {
     bookList.value = res.items || res || [];
     totalBook.value = res.meta?.totalItems || 0;
     return bookList.value;
-  } catch (error) {
+  } catch {
     createMessage.error('获取图书列表失败');
     bookList.value = [];
     totalBook.value = 0;
@@ -44,16 +44,11 @@ export const loadPageData = async (pageNum: number) => {
     bookList.value = res.items || res || [];
     totalBook.value = res.meta?.totalItems || 0;
     return bookList.value;
-  } catch (error) {
+  } catch {
     createMessage.error('获取图书列表失败');
     return [];
   }
 };
-export const actions: any[] = [
-  { icon: 'clarity:star-line', text: '156', color: '#018ffb' },
-  { icon: 'bx:bxs-like', text: '156', color: '#459ae8' },
-  { icon: 'bx:bxs-message-dots', text: '2', color: '#42d27d' },
-];
 
 export const schemas: FormSchema[] = [
   {
