@@ -52,3 +52,11 @@ export const createBookApi = (data: any) => {
     },
   );
 };
+
+// 解析epub接口
+export const parseEpubApi = (params: any) => {
+  return defHttp.get({
+    url: '/book/parse',
+    params,
+  });
+};

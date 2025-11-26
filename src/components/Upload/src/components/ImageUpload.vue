@@ -262,12 +262,13 @@
     const list = (fileList.value || [])
       .filter((item) => item?.status === UploadResultStatus.DONE)
       .map((item: any) => {
-        // 返回URL字符串以保持向后兼容性
-        return item?.response?.url || item?.url;
+        // 将响应数据返回给调用此组件的函数或者值
+        return item?.response.data.result || '';
       });
 
     // 如果设置了maxNumber为1，则返回单个值而不是数组
-    return props.maxNumber === 1 ? list[0] || '' : list;
+    // return props.maxNumber === 1 ? list[0] || '' : list;
+    return list;
   }
 </script>
 

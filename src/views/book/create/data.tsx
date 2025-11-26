@@ -26,37 +26,11 @@ export const step1Schemas: FormSchema[] = [
     componentProps: {
       // 封面最多一个
       maxNumber: 1,
-      // 直接返回URL字符串
-      resultField: 'url',
+      // 返回数组格式以匹配props类型定义
+      resultField: '',
       api: uploadApi,
     },
   },
-  /*
-  // {
-  //   field: 'cover',
-  //   component: 'Input',
-  //   label: '封面图片',
-  //   required: false,
-  //   componentProps: {
-  //     placeholder: '请上传封面图片（可选）',
-  //   },
-  //   colProps: {
-  //     span: 24,
-  //   },
-  // },
-  // {
-  //   field: 'fileName',
-  //   component: 'Input',
-  //   label: '文件',
-  //   required: false,
-  //   componentProps: {
-  //     placeholder: '请上传电子书文件（PDF、EPUB等格式）',
-  //   },
-  //   colProps: {
-  //     span: 24,
-  //   },
-  // },
-  */
   {
     field: 'file',
     component: 'Upload',

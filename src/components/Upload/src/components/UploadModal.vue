@@ -307,6 +307,7 @@
     if (fileList.length <= 0) {
       return createMessage.warning(t('component.upload.saveError'));
     }
+    console.log('fileList:', fileList);
     fileListRef.value = [];
     closeModal();
     emit('change', fileList);

@@ -229,7 +229,6 @@ export function createPreviewColumns(): BasicColumn[] {
       width: 100,
       customRender: ({ record }) => {
         const { url, fileName } = record as PreviewFileItem;
-        console.log('预览列接收到的record数据:', record);
 
         // 优先使用文件名判断文件类型
         const fileNameToUse = fileName || url?.split('/').pop() || '';

@@ -41,50 +41,16 @@
       span: 24,
     },
   });
-
+  //  TODO 完善数据显示
   async function customSubmitFunc() {
     try {
       const values = await validate();
-      console.log('原始表单数据:', values);
-      
-      // 处理上传字段：确保cover和file是URL字符串而不是数组
-      const processedValues = { ...values };
-      
-      // 处理cover字段 - 直接使用URL
-      if (processedValues.cover) {
-        if (Array.isArray(processedValues.cover)) {
-          // 如果是数组，取第一个元素的url
-          processedValues.cover = processedValues.cover.length > 0 
-            ? processedValues.cover[0] 
-            : '';
-        }
-        console.log('处理后的cover:', processedValues.cover);
-      }
-      
-      // 处理file字段 - 直接使用URL
-      if (processedValues.file) {
-        if (Array.isArray(processedValues.file)) {
-          // 如果是数组，取第一个元素的url
-          processedValues.file = processedValues.file.length > 0 
-            ? processedValues.file[0] 
-            : '';
-        }
-        console.log('处理后的file:', processedValues.file);
-      }
-      
-      // 过滤掉空值，但保留cover和file字段（即使是空字符串）
-      const filteredValues = Object.fromEntries(
-        Object.entries(processedValues).filter(([key, value]) => {
-          // 保留cover和file字段，即使它们是空字符串
-          if (key === 'cover' || key === 'file') {
-            return value !== null && value !== undefined;
-          }
-          // 其他字段过滤掉空值
-          return value !== '' && value !== null && value !== undefined;
-        }),
-      );
-      
-      console.log('第一步处理后的数据:', filteredValues);
+
+      // 简洁处理：提取数组中的URL，字符串去空格，过滤空值
+      const filteredValues = { ...values };
+      filteredValues.cover = values.cover[0].url;
+      filteredValues.file = values.file[0].url;
+      console.log('filteredValues:', filteredValues);
       emit('next', filteredValues);
     } catch (error) {
       console.error('第一步处理错误:', error);

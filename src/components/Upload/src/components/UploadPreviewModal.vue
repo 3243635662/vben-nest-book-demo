@@ -61,7 +61,6 @@
   watch(
     () => props.value,
     (value) => {
-      console.log('UploadPreviewModal接收到的数据:', props.value); // 调试日志
       if (!isArray(value)) value = [];
 
       // 如果提供了beforePreviewData回调，使用它处理数据
@@ -77,11 +76,8 @@
       fileListRef.value = value
         .filter((item) => !!item)
         .map((item) => {
-          console.log('处理预览数据项:', item); // 调试日志
-
           // 如果已经是正确的格式，直接返回
           if (typeof item === 'object' && item.url) {
-            console.log('已有格式，直接返回:', item); // 调试日志
             return {
               ...item,
               // 确保包含必要的字段
@@ -104,8 +100,6 @@
               name: item.split('/').pop() || '',
               fileName: item.split('/').pop() || '',
             };
-            console.log('字符串转换:', converted); // 调试日志
-            return converted;
           }
 
           // 其他情况确保有必要的字段
@@ -117,7 +111,6 @@
             fileName: item?.fileName || item?.name || item?.url?.split('/').pop() || '',
             response: item?.response || item,
           };
-          console.log('对象转换:', converted);
           return converted;
         });
     },

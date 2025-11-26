@@ -3,29 +3,29 @@
     <Alert message="请确认图书信息，确认后将创建新的图书记录。" show-icon type="info" />
     <Descriptions :column="1" class="mt-5" bordered>
       <Descriptions.Item label="书名"> {{ step1Data.title }} </Descriptions.Item>
-      <Descriptions.Item label="封面图片" v-if="coverData">
-        <div v-if="typeof coverData === 'string'">
+      <Descriptions.Item label="封面图片" v-if="step1Data.cover">
+        <div v-if="typeof step1Data.cover === 'string'">
           <img
-            :src="coverData"
+            :src="step1Data.cover"
             alt="封面图片"
             style="max-width: 200px; max-height: 300px; border-radius: 4px"
           />
         </div>
         <div v-else>
-          {{ JSON.stringify(coverData) }}
+          {{ JSON.stringify(step1Data.cover) }}
         </div>
       </Descriptions.Item>
-      <Descriptions.Item label="电子书文件" v-if="fileData">
-        <div v-if="typeof fileData === 'string'">
+      <Descriptions.Item label="电子书文件" v-if="step1Data.file">
+        <div v-if="typeof step1Data.file === 'string'">
           <img
-            :src="getSafeFileIconUrl(fileData)"
+            :src="fileImg"
             alt="文件图标"
             style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle"
           />
-          <span>{{ getSafeFileName(fileData) }}</span>
+          <span>{{ step1Data.file }}</span>
         </div>
         <div v-else>
-          {{ JSON.stringify(fileData) }}
+          {{ JSON.stringify(step1Data.file) }}
         </div>
       </Descriptions.Item>
 
@@ -68,95 +68,96 @@
   import { Alert, Divider, Descriptions } from 'ant-design-vue';
   // 导入获取文件图标URL的函数
   import { getFileIconUrl } from '@/components/Upload/src/components/data';
-  import { createBookApi } from '@/api/sys/upload';
+  import { createBookApi, parseEpubApi } from '@/api/sys/upload';
   import { computed } from 'vue';
+
   const { createMessage } = useMessage();
-  // 安全获取封面数据 - 增加调试信息
-  const coverData = computed(() => {
-    const cover = props.step1Data?.cover;
-    console.log('Step2收到的cover数据:', cover, '类型:', typeof cover);
+  // // 安全获取封面数据 - 增加调试信息
+  // const coverData = computed(() => {
+  //   const cover = props.step1Data?.cover;
+  //   console.log('Step2收到的cover数据:', cover, '类型:', typeof cover);
 
-    if (!cover) return null;
+  //   if (!cover) return null;
 
-    // 现在直接是URL字符串，无需复杂处理
-    if (typeof cover === 'string') {
-      return cover;
-    }
+  //   // 现在直接是URL字符串，无需复杂处理
+  //   if (typeof cover === 'string') {
+  //     return cover;
+  //   }
 
-    // 兼容处理：如果是数组，尝试提取URL
-    if (Array.isArray(cover) && cover.length > 0) {
-      return cover[0]?.url || cover[0]?.data?.url || cover[0]?.response?.url || '';
-    }
+  //   // 兼容处理：如果是数组，尝试提取URL
+  //   if (Array.isArray(cover) && cover.length > 0) {
+  //     return cover[0]?.url || cover[0]?.data?.url || cover[0]?.response?.url || '';
+  //   }
 
-    // 兼容处理：如果是对象，尝试提取URL
-    if (typeof cover === 'object' && cover !== null) {
-      return cover.url || cover.data?.url || cover.response?.url || '';
-    }
+  //   // 兼容处理：如果是对象，尝试提取URL
+  //   if (typeof cover === 'object' && cover !== null) {
+  //     return cover.url || cover.data?.url || cover.response?.url || '';
+  //   }
 
-    return null;
-  });
+  //   return null;
+  // });
 
-  // 安全获取文件数据 - 增加调试信息
-  const fileData = computed(() => {
-    const file = props.step1Data?.file;
-    console.log('Step2收到的file数据:', file, '类型:', typeof file);
+  // // 安全获取文件数据 - 增加调试信息
+  // const fileData = computed(() => {
+  //   const file = props.step1Data?.file;
+  //   console.log('Step2收到的file数据:', file, '类型:', typeof file);
 
-    if (!file) return null;
+  //   if (!file) return null;
 
-    // 现在直接是URL字符串，无需复杂处理
-    if (typeof file === 'string') {
-      return file;
-    }
+  //   // 现在直接是URL字符串，无需复杂处理
+  //   if (typeof file === 'string') {
+  //     return file;
+  //   }
 
-    // 兼容处理：如果是数组，尝试提取URL
-    if (Array.isArray(file) && file.length > 0) {
-      return file[0]?.url || file[0]?.data?.url || file[0]?.response?.url || '';
-    }
+  //   // 兼容处理：如果是数组，尝试提取URL
+  //   if (Array.isArray(file) && file.length > 0) {
+  //     return file[0]?.url || file[0]?.data?.url || file[0]?.response?.url || '';
+  //   }
 
-    // 兼容处理：如果是对象，尝试提取URL
-    if (typeof file === 'object' && file !== null) {
-      return file.url || file.data?.url || file.response?.url || '';
-    }
+  //   // 兼容处理：如果是对象，尝试提取URL
+  //   if (typeof file === 'object' && file !== null) {
+  //     return file.url || file.data?.url || file.response?.url || '';
+  //   }
 
-    return null;
-  });
+  //   return null;
+  // });
 
-  // 安全获取文件图标URL
-  const getSafeFileIconUrl = (file: any): string => {
-    try {
-      let fileName = '';
+  // // 安全获取文件图标URL
+  // const getSafeFileIconUrl = (file: any): string => {
+  //   try {
+  //     let fileName = '';
 
-      // 如果是字符串（URL），提取文件名
-      if (typeof file === 'string') {
-        const urlParts = file.split('/');
-        fileName = urlParts[urlParts.length - 1] || '';
-      } else {
-        // 如果是对象，尝试获取文件名属性
-        fileName = file?.name || file?.originalName || file?.fileName || '';
-      }
+  //     // 如果是字符串（URL），提取文件名
+  //     if (typeof file === 'string') {
+  //       const urlParts = file.split('/');
+  //       fileName = urlParts[urlParts.length - 1] || '';
+  //     } else {
+  //       // 如果是对象，尝试获取文件名属性
+  //       fileName = file?.name || file?.originalName || file?.fileName || '';
+  //     }
 
-      return getFileIconUrl(fileName); // 返回对应文件类型的图标
-    } catch (error) {
-      console.error('获取文件图标时出错:', error);
-      return getFileIconUrl(''); // 返回默认图标
-    }
-  };
+  //     return getFileIconUrl(fileName); // 返回对应文件类型的图标
+  //   } catch (error) {
+  //     console.error('获取文件图标时出错:', error);
+  //     return getFileIconUrl(''); // 返回默认图标
+  //   }
+  // };
 
-  // 安全获取文件名
-  const getSafeFileName = (file: any): string => {
-    try {
-      // 如果是字符串（URL），直接返回文件名部分
-      if (typeof file === 'string') {
-        const urlParts = file.split('/');
-        return urlParts[urlParts.length - 1] || '未知文件';
-      }
-      // 如果是对象，尝试获取文件名属性
-      return file?.name || file?.originalName || file?.fileName || '未知文件';
-    } catch (error) {
-      console.error('获取文件名时出错:', error);
-      return '未知文件';
-    }
-  };
+  // // 安全获取文件名
+  // const getSafeFileName = (file: any): string => {
+  //   try {
+  //     // 如果是字符串（URL），直接返回文件名部分
+  //     if (typeof file === 'string') {
+  //       const urlParts = file.split('/');
+  //       return urlParts[urlParts.length - 1] || '未知文件';
+  //     }
+  //     // 如果是对象，尝试获取文件名属性
+  //     return file?.name || file?.originalName || file?.fileName || '未知文件';
+  //   } catch (error) {
+  //     console.error('获取文件名时出错:', error);
+  //     return '未知文件';
+  //   }
+  // };
 
   const props = defineProps({
     step1Data: {
@@ -183,36 +184,12 @@
     submitFunc: customSubmitFunc,
     compact: true,
   });
-
+  const fileImg = computed(() => {
+    return getFileIconUrl(props.step1Data.file);
+  });
   async function customResetFunc() {
     emit('prev');
   }
-
-  // 添加对step1Data变化的监听，更新表单默认值
-
-  // watch(
-  //   () => props.step1Data,
-  //   (newData) => {
-  //     // 可以根据需要在这里更新表单默认值
-  //     // 调试封面和文件数据
-  //     if (newData.cover) {
-  //       if (Array.isArray(newData.cover)) {
-  //         // console.log('封面数组长度:', newData.cover.length);
-  //         if (newData.cover.length > 0) {
-  //           // console.log('第一个封面项:', newData.cover[0]);
-  //         }
-  //       }
-  //     }
-  //     if (newData.file) {
-  //       // console.log('文件数据类型:', typeof newData.file);
-  //       // console.log('文件数据:', newData.file);
-  //       if (Array.isArray(newData.file)) {
-  //         // console.log('文件数组长度:', newData.file.length);
-  //       }
-  //     }
-  //   },
-  //   { immediate: true },
-  // );
 
   async function customSubmitFunc() {
     try {
@@ -233,57 +210,24 @@
         createMessage.error('请确认图书信息后，勾选"确认创建 "');
         return;
       }
+      // 移除confirm字段，不提交到后端
+      const { confirm, ...restValues } = values;
 
-      // 过滤掉空值，合并第一步和第二步的数据
-      const filteredValues = Object.fromEntries(
-        Object.entries(values).filter(
-          ([_, value]) => value !== '' && value !== null && value !== undefined,
-        ),
-      );
-
-      // 直接使用step1Data，现在上传组件直接返回URL字符串
-      const bookData = {
+      const finalBookData = {
         ...props.step1Data,
-        ...filteredValues,
-        // 确保cover和file是字符串
-        cover: typeof props.step1Data.cover === 'string' ? props.step1Data.cover : '',
-        file: typeof props.step1Data.file === 'string' ? props.step1Data.file : '',
+        ...restValues,
       };
-
-      console.log('合并后的数据:', bookData);
-
-      // 清理数据，移除空值和undefined值，确保后端接收到的数据格式正确
-      const cleanData = (obj: any) => {
-        const result: any = {};
-        for (const key in obj) {
-          // 特殊处理cover和file字段，保留空字符串
-          if (key === 'cover' || key === 'file') {
-            if (obj[key] !== null && obj[key] !== undefined) {
-              result[key] = obj[key];
-            }
-          } else if (obj[key] !== '' && obj[key] !== null && obj[key] !== undefined) {
-            result[key] = obj[key];
-          }
-        }
-        return result;
-      };
-
-      // 清理数据
-      const finalBookData = cleanData(bookData);
-      console.log('最终清理后的数据:', finalBookData);
-
-      // 确保必要字段存在
-      if (!finalBookData.title) {
-        createMessage.error('图书标题不能为空');
-        return;
-      }
-      console.log('最终提交数据:', finalBookData);
-
+      console.log('finalBookData:', finalBookData);
       // 调用API创建图书
       try {
         const response = await createBookApi(finalBookData);
 
         if (response === true) {
+          // axios 自动将result过滤出来
+          const bookMenuList = await parseEpubApi({
+            bookFilePath: finalBookData.file,
+          });
+
           createMessage.success('图书创建成功');
           // 传递图书信息到第三步
           emit('next', {
@@ -293,9 +237,13 @@
             file: finalBookData.file || '',
             publisher: finalBookData.publisher || '未知出版社',
             categoryName: finalBookData.categoryName || '',
+            language: finalBookData.language || '未知语言',
+            bookMenuList: bookMenuList || [],
           });
         }
       } catch (error) {
+        console.log('错误:', error);
+
         createMessage.error('图书创建失败,联系管理员');
       }
     } catch (error) {
