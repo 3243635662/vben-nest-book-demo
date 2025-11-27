@@ -6,9 +6,9 @@ import {
   RolePageParams,
   MenuListGetResultModel,
   DeptListGetResultModel,
-  AccountListGetResultModel,
   RolePageListGetResultModel,
   RoleListGetResultModel,
+  AreaListItem,
 } from './model/systemModel';
 import { defHttp } from '@/utils/http/axios';
 
@@ -24,10 +24,9 @@ enum Api {
 }
 
 export const getMerchantAccountList = (params: AccountParams) =>
-  defHttp.get<AccountListGetResultModel>({ url: Api.AccountList, params });
+  defHttp.get<any>({ url: Api.AccountList, params });
 
-export const getArea = (params?: DeptListItem) =>
-  defHttp.get<DeptListGetResultModel>({ url: Api.DeptList, params });
+export const getArea = (params?: AreaListItem) => defHttp.get<any>({ url: Api.AreaList, params });
 
 export const getMenuList = (params?: MenuParams) =>
   defHttp.get<MenuListGetResultModel>({ url: Api.MenuList, params });

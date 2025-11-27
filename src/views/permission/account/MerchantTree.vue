@@ -7,7 +7,7 @@
       treeWrapperClassName="h-[calc(100%-35px)] overflow-auto"
       :clickRowToExpand="false"
       :treeData="treeData"
-      :fieldNames="{ key: 'id', title: 'merchantName' }"
+      :fieldNames="{ key: 'text', title: 'merchantName' }"
       @select="handleSelect"
     />
   </div>
@@ -25,10 +25,16 @@
   const treeData = ref<TreeItem[]>([]);
 
   async function fetchMerchants() {
-    treeData.value = (await getArea()) as unknown as TreeItem[];
+    treeData.value = (await getArea()).map((item) => ({
+      ...item,
+      merchantName: item.text,
+    })) as unknown as TreeItem[];
+    console.log(treeData.value);
   }
 
   function handleSelect(keys) {
+    console.log('handleSelect', keys);
+
     emit('select', keys[0]);
   }
 

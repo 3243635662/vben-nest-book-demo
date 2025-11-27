@@ -10,18 +10,18 @@ import { BasicColumn, FormSchema } from '@/components/Table';
  *  ...
  * }
  */
-export const deptMap = (() => {
-  const pDept = ['华东分部', '华南分部', '西北分部'];
-  const cDept = ['研发部', '市场部', '商务部', '财务部'];
+// export const deptMap = (() => {
+//   const pDept = ['华东分部', '华南分部', '西北分部'];
+//   const cDept = ['研发部', '市场部', '商务部', '财务部'];
 
-  return pDept.reduce((map, p, pIdx) => {
-    map[pIdx] = p;
+//   return pDept.reduce((map, p, pIdx) => {
+//     map[pIdx] = p;
 
-    cDept.forEach((c, cIndex) => (map[`${pIdx}-${cIndex}`] = `${p}-${c}`));
+//     cDept.forEach((c, cIndex) => (map[`${pIdx}-${cIndex}`] = `${p}-${c}`));
 
-    return map;
-  }, {});
-})();
+//     return map;
+//   }, {});
+// })();
 
 export const columns: BasicColumn[] = [
   {
@@ -54,8 +54,12 @@ export const columns: BasicColumn[] = [
   },
   {
     title: '所属地区',
-    dataIndex: 'area',
+    dataIndex: 'areaId',
     width: 120,
+    customRender: ({ text }) => {
+      // 地区映射将在index.vue中动态设置
+      return text || '未知地区';
+    },
   },
   {
     title: '状态',
@@ -81,7 +85,11 @@ export const searchFormSchema: FormSchema[] = [
   {
     field: 'area',
     label: '所属地区',
-    component: 'Input',
+    component: 'Select',
+    componentProps: {
+      options: [],
+      placeholder: '请选择地区',
+    },
     colProps: { span: 8 },
   },
 ];

@@ -1,7 +1,7 @@
 <template>
   <PageWrapper dense contentFullHeight fixedHeight contentClass="flex">
     <MerchantTree class="w-1/4 xl:w-1/5" @select="handleSelect" />
-    <BasicTable @register="registerTable" class="w-3/4 xl:w-4/5" :searchInfo="searchInfo">
+    <BasicTable @register="registerTable" class="w-3/4 xl:w-4/5">
       <template #toolbar>
         <a-button type="primary" @click="handleCreate">新增商家</a-button>
         <a-button type="primary" @click="handleExport">导出商家</a-button>
@@ -39,10 +39,10 @@
   </PageWrapper>
 </template>
 <script lang="ts" setup>
-  import { reactive } from 'vue';
+  import { reactive, ref, onMounted } from 'vue';
 
   import { BasicTable, useTable, TableAction } from '@/components/Table';
-  import { getMerchantAccountList } from '@/api/demo/system';
+  import { getMerchantAccountList, getArea } from '@/api/demo/system';
   import { PageWrapper } from '@/components/Page';
   import MerchantTree from './MerchantTree.vue';
 
@@ -57,30 +57,71 @@
   const go = useGo();
   const [registerModal, { openModal }] = useModal();
   const searchInfo = reactive<Recordable>({});
-  const [registerTable, { reload, updateTableDataRecord, getSearchInfo }] = useTable({
-    title: '商家列表',
-    api: getMerchantAccountList,
-    rowKey: 'id',
-    columns,
-    formConfig: {
-      labelWidth: 120,
-      schemas: searchFormSchema,
-      autoSubmitOnEnter: true,
-    },
-    useSearchForm: true,
-    showTableSetting: true,
-    bordered: true,
-    handleSearchInfoFn(info) {
-      console.log('handleSearchInfoFn', info);
-      return info;
-    },
-    actionColumn: {
-      width: 120,
-      title: '操作',
-      dataIndex: 'action',
-      // slots: { customRender: 'action' },
-    },
-  });
+  const areaOptions = ref<{ label: string; value: string }[]>([]);
+
+  const [registerTable, { reload, updateTableDataRecord, getSearchInfo, getForm, setColumns }] =
+    useTable({
+      title: '商家列表',
+      api: getMerchantAccountList,
+      rowKey: 'id',
+      columns: columns.map((col) => {
+        if (col.dataIndex === 'area') {
+          return {
+            ...col,
+            customRender: ({ text }) => {
+              // 直接显示地区文本，因为API返回的地区字段已经是文本格式
+              return text || '未知地区';
+            },
+          };
+        }
+        return col;
+      }),
+      formConfig: {
+        labelWidth: 120,
+        schemas: searchFormSchema.map((schema) => {
+          if (schema.field === 'area') {
+            return {
+              ...schema,
+              componentProps: {
+                ...schema.componentProps,
+                options: areaOptions.value,
+              },
+            };
+          }
+          return schema;
+        }),
+        autoSubmitOnEnter: true,
+      },
+      useSearchForm: true,
+      showTableSetting: true,
+      bordered: true,
+      handleSearchInfoFn(info) {
+        console.log('handleSearchInfoFn', info);
+        // 处理搜索参数，传递给后端API
+        // 只返回搜索表单中的参数，不包含merchantId等其他参数
+        interface SearchParamsType {
+          username?: string;
+          area?: string;
+        }
+        const searchParams: SearchParamsType = {};
+
+        if (info.username) {
+          searchParams.username = info.username;
+        }
+
+        if (info.area) {
+          searchParams.area = info.area;
+        }
+
+        return searchParams;
+      },
+      actionColumn: {
+        width: 120,
+        title: '操作',
+        dataIndex: 'action',
+        // slots: { customRender: 'action' },
+      },
+    });
 
   function handleCreate() {
     openModal(true, {
@@ -115,12 +156,66 @@
     }
   }
 
-  function handleSelect(merchantId = '') {
-    searchInfo.merchantId = merchantId;
-    reload();
+  function handleSelect(areaText = '') {
+    // 获取表单实例
+    const form = getForm();
+    if (form) {
+      // 将地区文本设置到搜索表单的area字段
+      form.setFieldsValue({ area: areaText });
+      // 提交表单触发搜索
+      form.submit();
+    }
   }
 
   function handleView(record: Recordable) {
     go('/system/account_detail/' + record.id);
   }
+
+  // 获取地区数据
+  async function fetchAreaOptions() {
+    try {
+      const areaData = await getArea();
+      areaOptions.value = areaData.map((item) => ({
+        label: item.text,
+        value: item.text, // 使用text作为value，因为API返回的地区字段是文本
+      }));
+
+      // 更新搜索表单的地区选项
+      const form = getForm();
+      if (form) {
+        form.updateSchema({
+          field: 'area',
+          componentProps: {
+            options: areaOptions.value,
+          },
+        });
+      }
+
+      // 动态更新表格列的地区映射配置
+      const areaMap = areaData.reduce((map, item) => {
+        map[item.id] = item.text;
+        return map;
+      }, {});
+
+      setColumns(
+        columns.map((col) => {
+          if (col.dataIndex === 'areaId') {
+            return {
+              ...col,
+              customRender: ({ text }) => {
+                return areaMap[text] || '未知地区';
+              },
+            };
+          }
+          return col;
+        }),
+      );
+    } catch (error) {
+      console.error('获取地区数据失败:', error);
+    }
+  }
+
+  onMounted(() => {
+    fetchAreaOptions();
+  });
 </script>
