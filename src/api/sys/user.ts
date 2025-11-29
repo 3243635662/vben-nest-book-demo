@@ -1,14 +1,16 @@
 import { defHttp } from '@/utils/http/axios';
-import { LoginParams, LoginResultModel, GetUserInfoModel } from './model/userModel';
+import { LoginParams, LoginResultModel, GetUserInfoModel, GetIPModel } from './model/userModel';
 
 import { ErrorMessageMode } from '#/axios';
 
 enum Api {
-  Login = '/login',
+  // 修改api  前后端联调
+  Login = '/auth/login',
   Logout = '/logout',
-  GetUserInfo = '/getUserInfo',
+  GetUserInfo = '/user/info',
   GetPermCode = '/getPermCode',
   TestRetry = '/testRetry',
+  GetIP = '/ip/public',
 }
 
 /**
@@ -24,6 +26,10 @@ export function loginApi(params: LoginParams, mode: ErrorMessageMode = 'modal') 
       errorMessageMode: mode,
     },
   );
+}
+// 获取当前用户IP地址
+export function getIP() {
+  return defHttp.get<GetIPModel>({ url: Api.GetIP }, { errorMessageMode: 'none' });
 }
 
 /**

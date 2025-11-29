@@ -15,12 +15,14 @@ export function useUploadType({
 }) {
   // 文件类型限制
   const getAccept = computed(() => {
+    // 使用unref安全地获取accept的值
     const accept = unref(acceptRef);
     if (accept && accept.length > 0) {
       return accept;
     }
     return [];
   });
+  // 给accept添加点号前缀，例如：.jpg .jpeg .png 再用,连成一个数组
   const getStringAccept = computed(() => {
     return unref(getAccept)
       .map((item) => {

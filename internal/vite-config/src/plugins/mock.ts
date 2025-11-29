@@ -8,7 +8,7 @@ export function configMockPlugin({ isBuild }: { isBuild: boolean }) {
   return viteMockServe({
     ignore: /^_/,
     mockPath: 'mock',
-    localEnabled: !isBuild,
+    localEnabled: true, // 禁用开发环境Mock，使用真实后端API
     prodEnabled: isBuild,
     injectCode: `
       import { setupProdMockServer } from '../mock/_createProductionServer';

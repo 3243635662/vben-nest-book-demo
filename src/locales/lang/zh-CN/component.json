@@ -108,6 +108,7 @@
     "maxNumber": "最多只能上传{0}个文件",
     "legend": "略缩图",
     "fileName": "文件名",
+    "backFileName": "后台文件名",
     "fileSize": "文件大小",
     "fileStatue": "状态",
     "pending": "待上传",
