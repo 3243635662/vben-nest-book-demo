@@ -18,14 +18,27 @@ enum Api {
   MenuList = '/menu',
   RoleList = '/role',
   IsAccountExist = '/user/accountExist',
+  AssignRole = '/role/assign',
+  GetRoleMenuList = '/role/getRoleMenus',
   DeptList = '/system/getDeptList',
   setRoleStatus = '/system/setRoleStatus',
   RolePageList = '/system/getRoleListByPage',
   GetAllRoleList = '/system/getAllRoleList',
 }
 
-export const getMerchantAccountList = (params: AccountParams) =>
-  defHttp.get<any>({ url: Api.Account, params });
+export const getMerchantAccountList = (params: AccountParams) => {
+  // 转换分页参数：将pageSize转换为limit
+  const { pageSize, ...otherParams } = params;
+  const transformedParams = {
+    ...otherParams,
+    ...(pageSize !== undefined && { limit: pageSize }),
+  };
+
+  return defHttp.get<any>({
+    url: Api.Account,
+    params: transformedParams,
+  });
+};
 
 export const getArea = (params?: AreaListItem) => defHttp.get<any>({ url: Api.AreaList, params });
 
@@ -45,6 +58,12 @@ export const deleteAccount = (id: number) => defHttp.delete({ url: `${Api.Accoun
 export const createRole = (data: any) => defHttp.post({ url: Api.RoleList, data });
 
 export const updateRole = (data: any) => defHttp.put({ url: Api.RoleList, data });
+
+export const assignMenu = (data: any) => defHttp.post({ url: Api.AssignRole, data });
+
+export const getRoleMenuList = (roleId: number) =>
+  defHttp.get<any>({ url: `${Api.GetRoleMenuList}/${roleId}` });
+
 export const getRoleListByPage = (params?: RolePageParams) =>
   defHttp.get<RolePageListGetResultModel>({ url: Api.RolePageList, params });
 

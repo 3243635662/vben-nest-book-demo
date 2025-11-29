@@ -1,5 +1,6 @@
 import { getRoleList, isAccountExist } from '@/api/demo/system';
 import { BasicColumn, FormSchema } from '@/components/Table';
+import { Ref, unref } from 'vue';
 
 export const columns: BasicColumn[] = [
   {
@@ -72,73 +73,146 @@ export const searchFormSchema: FormSchema[] = [
   },
 ];
 
-export const accountFormSchema: FormSchema[] = [
-  {
-    field: 'username',
-    label: '账号名称',
-    component: 'Input',
-    helpMessage: ['不能输入带有admin的账号名称'],
-    rules: [
-      {
-        required: true,
-        message: '请输入账号名称',
-      },
-      {
-        trigger: 'blur',
-        validator(_, value) {
-          return new Promise((resolve, reject) => {
-            if (!value) return resolve();
-            isAccountExist(value)
-              .then(resolve)
-              .catch((err) => {
-                reject(err.message || '验证失败');
-              });
-          });
-        },
-      },
-    ],
-  },
-  {
-    label: '邮箱',
-    field: 'email',
-    component: 'Input',
-    required: true,
-  },
-  {
-    field: 'password',
-    label: '密码',
-    component: 'InputPassword',
-    required: true,
-    ifShow: true,
-  },
-  {
-    field: 'role',
-    label: '角色',
-    component: 'ApiSelect',
-    componentProps: {
-      api: getRoleList,
-      labelField: 'remark',
-      valueField: 'id',
-    },
-    required: true,
-  },
-  {
-    field: 'area',
-    label: '所属地区',
-    component: 'TreeSelect',
-    componentProps: {
-      fieldNames: {
-        label: 'text',
-        value: 'id',
-      },
-      getPopupContainer: () => document.body,
-    },
-    required: true,
-  },
+// export const accountFormSchema: FormSchema[] = [
+//   {
+//     field: 'username',
+//     label: '账号名称',
+//     component: 'Input',
+//     helpMessage: ['不能输入带有admin的账号名称'],
+//     rules: [
+//       {
+//         required: true,
+//         message: '请输入账号名称',
+//       },
+//       {
+//         trigger: 'blur',
+//         validator(_, value) {
+//           return new Promise((resolve, reject) => {
+//             if (!value) return resolve();
+//             isAccountExist(value)
+//               .then(resolve)
+//               .catch((err) => {
+//                 reject(err.message || '验证失败');
+//               });
+//           });
+//         },
+//       },
+//     ],
+//   },
+//   {
+//     label: '邮箱',
+//     field: 'email',
+//     component: 'Input',
+//     required: true,
+//   },
+//   {
+//     field: 'password',
+//     label: '密码',
+//     component: 'InputPassword',
+//     required: true,
+//     ifShow: true,
+//   },
+//   {
+//     field: 'role',
+//     label: '角色',
+//     component: 'ApiSelect',
+//     componentProps: {
+//       api: getRoleList,
+//       labelField: 'remark',
+//       valueField: 'id',
+//     },
+//     required: true,
+//   },
+//   {
+//     field: 'area',
+//     label: '所属地区',
+//     component: 'TreeSelect',
+//     componentProps: {
+//       fieldNames: {
+//         label: 'text',
+//         value: 'id',
+//       },
+//       getPopupContainer: () => document.body,
+//     },
+//     required: true,
+//   },
 
-  {
-    label: '备注',
-    field: 'remark',
-    component: 'InputTextArea',
-  },
-];
+//   {
+//     label: '备注',
+//     field: 'remark',
+//     component: 'InputTextArea',
+//   },
+// ];
+
+export const accountFormSchemaFunction = (isUpdate: Ref<boolean>): FormSchema[] => {
+  return [
+    {
+      field: 'username',
+      label: '账号名称',
+      component: 'Input',
+      helpMessage: ['不能输入带有admin的账号名称'],
+      rules: [
+        {
+          required: true,
+          message: '请输入账号名称',
+        },
+        {
+          trigger: 'blur',
+          validator(_, value) {
+            return new Promise((resolve, reject) => {
+              if (!value) return resolve();
+              isAccountExist(value)
+                .then(resolve)
+                .catch((err) => {
+                  reject(err.message || '验证失败');
+                });
+            });
+          },
+        },
+      ],
+    },
+    {
+      label: '邮箱',
+      field: 'email',
+      component: 'Input',
+      required: true,
+    },
+    {
+      field: 'password',
+      label: '密码',
+      component: 'InputPassword',
+      required: true,
+      ifShow: () => !unref(isUpdate),
+    },
+    {
+      field: 'role',
+      label: '角色',
+      component: 'ApiSelect',
+      componentProps: {
+        api: getRoleList,
+        labelField: 'remark',
+        valueField: 'id',
+      },
+      required: true,
+    },
+    {
+      field: 'area',
+      label: '所属地区',
+      component: 'TreeSelect',
+      componentProps: {
+        fieldNames: {
+          label: 'text',
+          value: 'id',
+        },
+        getPopupContainer: () => document.body,
+      },
+      required: true,
+    },
+
+    {
+      label: '备注',
+      field: 'remark',
+      component: 'InputTextArea',
+    },
+  ];
+};

@@ -7,7 +7,7 @@
   import { ref, computed, unref } from 'vue';
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, useForm } from '@/components/Form';
-  import { accountFormSchema } from './account.data';
+  import { accountFormSchemaFunction } from './account.data';
   import { getArea, createAccount } from '@/api/demo/system';
   import { useMessage } from '@/hooks/web/useMessage';
 
@@ -23,7 +23,7 @@
   const [registerForm, { setFieldsValue, updateSchema, resetFields, validate }] = useForm({
     labelWidth: 100,
     baseColProps: { span: 24 },
-    schemas: accountFormSchema,
+    schemas: accountFormSchemaFunction(isUpdate),
     showActionButtonGroup: false,
     actionColOptions: {
       span: 23,

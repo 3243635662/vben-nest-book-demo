@@ -3,7 +3,6 @@
     <MerchantTree class="w-1/4 xl:w-1/5" @select="handleSelect" />
     <BasicTable @register="registerTable" class="w-3/4 xl:w-4/5">
       <template #toolbar>
-        <div>架构基本就是这样 增删改查就懒得做了</div>
         <a-button type="primary" @click="handleCreate">新增账号</a-button>
         <a-button type="primary" @click="handleExport">导出账号</a-button>
       </template>
@@ -61,69 +60,85 @@
   const [registerModal, { openModal }] = useModal();
   const areaOptions = ref<{ label: string; value: string }[]>([]);
 
-  const [registerTable, { reload, updateTableDataRecord, getSearchInfo, getForm, setColumns }] =
-    useTable({
-      title: '账号列表',
-      api: getMerchantAccountList,
-      rowKey: 'id',
-      columns: columns.map((col) => {
-        if (col.dataIndex === 'area') {
+  const [registerTable, { reload, getSearchInfo, getForm, setColumns }] = useTable({
+    title: '账号列表',
+    api: getMerchantAccountList,
+    rowKey: 'id',
+    // 自定义分页参数映射
+    fetchSetting: {
+      // 当前页字段名
+      pageField: 'page',
+      // 每页条数字段名，后端使用limit
+      sizeField: 'limit',
+      // 列表数据字段名
+      listField: 'items',
+      // 总条数字段名，后端返回的是meta.totalItems
+      totalField: 'meta.totalItems',
+    },
+    // 设置默认每页条数
+    pagination: {
+      pageSize: 10,
+      pageSizeOptions: ['5', '10', '20', '50'],
+      showSizeChanger: true,
+      showQuickJumper: true,
+    },
+    columns: columns.map((col) => {
+      if (col.dataIndex === 'area') {
+        return {
+          ...col,
+          customRender: ({ text }) => {
+            // 直接显示地区文本，因为API返回的地区字段已经是文本格式
+            return text || '未知地区';
+          },
+        };
+      }
+      return col;
+    }),
+    formConfig: {
+      labelWidth: 120,
+      schemas: searchFormSchema.map((schema) => {
+        if (schema.field === 'area') {
           return {
-            ...col,
-            customRender: ({ text }) => {
-              // 直接显示地区文本，因为API返回的地区字段已经是文本格式
-              return text || '未知地区';
+            ...schema,
+            componentProps: {
+              ...schema.componentProps,
+              options: areaOptions.value,
             },
           };
         }
-        return col;
+        return schema;
       }),
-      formConfig: {
-        labelWidth: 120,
-        schemas: searchFormSchema.map((schema) => {
-          if (schema.field === 'area') {
-            return {
-              ...schema,
-              componentProps: {
-                ...schema.componentProps,
-                options: areaOptions.value,
-              },
-            };
-          }
-          return schema;
-        }),
-        autoSubmitOnEnter: true,
-      },
-      useSearchForm: true,
-      showTableSetting: true,
-      bordered: true,
-      handleSearchInfoFn(info) {
-        console.log('handleSearchInfoFn', info);
-        // 处理搜索参数，传递给后端API
-        // 只返回搜索表单中的参数，不包含merchantId等其他参数
-        interface SearchParamsType {
-          username?: string;
-          area?: string;
-        }
-        const searchParams: SearchParamsType = {};
+      autoSubmitOnEnter: true,
+    },
+    useSearchForm: true,
+    showTableSetting: true,
+    bordered: true,
+    handleSearchInfoFn(info) {
+      // 处理搜索参数，传递给后端API
+      // 只返回搜索表单中的参数，不包含merchantId等其他参数
+      interface SearchParamsType {
+        username?: string;
+        area?: string;
+      }
+      const searchParams: SearchParamsType = {};
 
-        if (info.username) {
-          searchParams.username = info.username;
-        }
+      if (info.username) {
+        searchParams.username = info.username;
+      }
 
-        if (info.area) {
-          searchParams.area = info.area;
-        }
+      if (info.area) {
+        searchParams.area = info.area;
+      }
 
-        return searchParams;
-      },
-      actionColumn: {
-        width: 120,
-        title: '操作',
-        dataIndex: 'action',
-        // slots: { customRender: 'action' },
-      },
-    });
+      return searchParams;
+    },
+    actionColumn: {
+      width: 120,
+      title: '操作',
+      dataIndex: 'action',
+      // slots: { customRender: 'action' },
+    },
+  });
 
   function handleCreate() {
     openModal(true, {
@@ -162,8 +177,6 @@
     if (isUpdate) {
       // 演示不刷新表格直接更新内部数据。
       // 注意：updateTableDataRecord要求表格的rowKey属性为string并且存在于每一行的record的keys中
-      const result = updateTableDataRecord(values.id, values);
-      console.log(result);
     } else {
       reload();
     }
