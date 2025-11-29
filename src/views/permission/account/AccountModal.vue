@@ -8,7 +8,10 @@
   import { BasicModal, useModalInner } from '@/components/Modal';
   import { BasicForm, useForm } from '@/components/Form';
   import { accountFormSchema } from './account.data';
-  import { getArea } from '@/api/demo/system';
+  import { getArea, createAccount } from '@/api/demo/system';
+  import { useMessage } from '@/hooks/web/useMessage';
+
+  const { createMessage } = useMessage();
 
   defineOptions({ name: 'AccountModal' });
 
@@ -52,16 +55,19 @@
     ]);
   });
 
-  const getTitle = computed(() => (!unref(isUpdate) ? '新增商家账号' : '编辑商家账号'));
+  const getTitle = computed(() => (!unref(isUpdate) ? '新增账号' : '编辑账号'));
 
   async function handleSubmit() {
     try {
       const values = await validate();
       setModalProps({ confirmLoading: true });
       // TODO custom api
-      console.log(values);
-      closeModal();
-      emit('success', { isUpdate: unref(isUpdate), values: { ...values, id: rowId.value } });
+      const res = await createAccount(values);
+      if (res) {
+        createMessage.success('新增账号成功');
+        closeModal();
+        emit('success', { isUpdate: unref(isUpdate), values: { ...values, id: rowId.value } });
+      }
     } finally {
       setModalProps({ confirmLoading: false });
     }

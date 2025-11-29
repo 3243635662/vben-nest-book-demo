@@ -1,31 +1,9 @@
-import { getAllRoleList, isAccountExist } from '@/api/demo/system';
+import { getRoleList, isAccountExist } from '@/api/demo/system';
 import { BasicColumn, FormSchema } from '@/components/Table';
-
-/**
- * transform mock data
- * {
- *  0: '华东分部',
- * '0-0': '华东分部-研发部'
- * '0-1': '华东分部-市场部',
- *  ...
- * }
- */
-// export const deptMap = (() => {
-//   const pDept = ['华东分部', '华南分部', '西北分部'];
-//   const cDept = ['研发部', '市场部', '商务部', '财务部'];
-
-//   return pDept.reduce((map, p, pIdx) => {
-//     map[pIdx] = p;
-
-//     cDept.forEach((c, cIndex) => (map[`${pIdx}-${cIndex}`] = `${p}-${c}`));
-
-//     return map;
-//   }, {});
-// })();
 
 export const columns: BasicColumn[] = [
   {
-    title: '商家名称',
+    title: '账号名称',
     dataIndex: 'username',
     width: 120,
   },
@@ -78,7 +56,7 @@ export const columns: BasicColumn[] = [
 export const searchFormSchema: FormSchema[] = [
   {
     field: 'username',
-    label: '商家名称',
+    label: '账号名称',
     component: 'Input',
     colProps: { span: 8 },
   },
@@ -97,13 +75,13 @@ export const searchFormSchema: FormSchema[] = [
 export const accountFormSchema: FormSchema[] = [
   {
     field: 'username',
-    label: '商家名称',
+    label: '账号名称',
     component: 'Input',
-    helpMessage: ['不能输入带有admin的商家名称'],
+    helpMessage: ['不能输入带有admin的账号名称'],
     rules: [
       {
         required: true,
-        message: '请输入商家名称',
+        message: '请输入账号名称',
       },
       {
         trigger: 'blur',
@@ -127,30 +105,30 @@ export const accountFormSchema: FormSchema[] = [
     required: true,
   },
   {
-    field: 'pwd',
+    field: 'password',
     label: '密码',
     component: 'InputPassword',
     required: true,
     ifShow: true,
   },
   {
-    label: '角色',
     field: 'role',
+    label: '角色',
     component: 'ApiSelect',
     componentProps: {
-      api: getAllRoleList,
-      labelField: 'roleName',
-      valueField: 'roleValue',
+      api: getRoleList,
+      labelField: 'remark',
+      valueField: 'id',
     },
     required: true,
   },
   {
-    field: 'dept',
+    field: 'area',
     label: '所属地区',
     component: 'TreeSelect',
     componentProps: {
       fieldNames: {
-        label: 'deptName',
+        label: 'text',
         value: 'id',
       },
       getPopupContainer: () => document.body,

@@ -27,9 +27,9 @@
   import { formSchema } from './role.data';
   import { BasicDrawer, useDrawerInner } from '@/components/Drawer';
   import { BasicTree, TreeItem } from '@/components/Tree';
-
-  import { getMenuList } from '@/api/demo/system';
-
+  import { getMenuList, createRole, updateRole } from '@/api/demo/system';
+  import { useMessage } from '@/hooks/web/useMessage';
+  const { createMessage } = useMessage();
   const emit = defineEmits(['success', 'register']);
   const isUpdate = ref(true);
   const treeData = ref<TreeItem[]>([]);
@@ -63,8 +63,23 @@
     try {
       const values = await validate();
       setDrawerProps({ confirmLoading: true });
-      // TODO custom api
-      console.log(values);
+      console.log('提交表单', values);
+
+      if (unref(isUpdate)) {
+        const res = await updateRole(values);
+        if (res) {
+          createMessage.success('更新成功');
+        } else {
+          createMessage.error('更新失败');
+        }
+      } else {
+        const res = await createRole(values);
+        if (res) {
+          createMessage.success('新增成功');
+        } else {
+          createMessage.error('新增失败');
+        }
+      }
       closeDrawer();
       emit('success');
     } finally {

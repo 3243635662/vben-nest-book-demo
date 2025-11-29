@@ -3,8 +3,9 @@
     <MerchantTree class="w-1/4 xl:w-1/5" @select="handleSelect" />
     <BasicTable @register="registerTable" class="w-3/4 xl:w-4/5">
       <template #toolbar>
-        <a-button type="primary" @click="handleCreate">新增商家</a-button>
-        <a-button type="primary" @click="handleExport">导出商家</a-button>
+        <div>架构基本就是这样 增删改查就懒得做了</div>
+        <a-button type="primary" @click="handleCreate">新增账号</a-button>
+        <a-button type="primary" @click="handleExport">导出账号</a-button>
       </template>
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
@@ -12,20 +13,20 @@
             :actions="[
               {
                 icon: 'clarity:info-standard-line',
-                tooltip: '查看商家详情',
+                tooltip: '查看账号详情',
                 onClick: handleView.bind(null, record),
               },
               {
                 icon: 'clarity:note-edit-line',
-                tooltip: '编辑商家资料',
+                tooltip: '编辑账号资料',
                 onClick: handleEdit.bind(null, record),
               },
               {
                 icon: 'ant-design:delete-outlined',
                 color: 'error',
-                tooltip: '删除此商家',
+                tooltip: '删除此账号',
                 popConfirm: {
-                  title: '是否确认删除此商家',
+                  title: '是否确认删除此账号',
                   placement: 'left',
                   confirm: handleDelete.bind(null, record),
                 },
@@ -39,7 +40,7 @@
   </PageWrapper>
 </template>
 <script lang="ts" setup>
-  import { reactive, ref, onMounted } from 'vue';
+  import { ref, onMounted } from 'vue';
 
   import { BasicTable, useTable, TableAction } from '@/components/Table';
   import { getMerchantAccountList, getArea } from '@/api/demo/system';
@@ -51,17 +52,18 @@
 
   import { columns, searchFormSchema } from './account.data';
   import { useGo } from '@/hooks/web/usePage';
-
+  import { deleteAccount } from '@/api/demo/system';
+  import { useMessage } from '@/hooks/web/useMessage';
+  const { createMessage } = useMessage();
   defineOptions({ name: 'AccountManagement' });
 
   const go = useGo();
   const [registerModal, { openModal }] = useModal();
-  const searchInfo = reactive<Recordable>({});
   const areaOptions = ref<{ label: string; value: string }[]>([]);
 
   const [registerTable, { reload, updateTableDataRecord, getSearchInfo, getForm, setColumns }] =
     useTable({
-      title: '商家列表',
+      title: '账号列表',
       api: getMerchantAccountList,
       rowKey: 'id',
       columns: columns.map((col) => {
@@ -137,8 +139,19 @@
     });
   }
 
-  function handleDelete(record: Recordable) {
-    console.log(record);
+  async function handleDelete(record: Recordable) {
+    let id = record.id;
+    try {
+      let res = await deleteAccount(id);
+      if (res) {
+        createMessage.success('删除成功');
+        reload();
+      } else {
+        createMessage.error('删除失败');
+      }
+    } catch (error) {
+      createMessage.error('删除失败');
+    }
   }
 
   function handleExport() {

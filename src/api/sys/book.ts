@@ -1,6 +1,7 @@
 import { defHttp } from '@/utils/http/axios';
 
 enum Api {
+  Book = '/book',
   GetBookList = '/book/list',
 }
 export interface GetBookListParams {
@@ -16,5 +17,12 @@ export const getBookList = (params: GetBookListParams) => {
   return defHttp.get({
     url: Api.GetBookList,
     params,
+  });
+};
+
+// 删除图书
+export const deleteBook = (id: number) => {
+  return defHttp.delete({
+    url: `${Api.Book}/${id}`,
   });
 };

@@ -1,7 +1,7 @@
 <template>
   <div class="m-4 mr-0 overflow-hidden bg-white">
     <BasicTree
-      title="商家列表"
+      title="地区列表"
       toolbar
       search
       treeWrapperClassName="h-[calc(100%-35px)] overflow-auto"

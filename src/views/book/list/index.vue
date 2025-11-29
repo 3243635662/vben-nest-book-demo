@@ -100,7 +100,9 @@
   import { onMounted } from 'vue';
   import { formatToDateTime } from '@/utils/dateUtil';
   const prefixCls = 'list-search';
-
+  import { deleteBook } from '@/api/sys/book';
+  import { useMessage } from '@/hooks/web/useMessage';
+  const { createMessage } = useMessage();
   // 初始化数据
   onMounted(async () => {
     await initBookList({
@@ -155,17 +157,29 @@
   };
 
   // 编辑按钮点击事件
-  const handleEdit = (bookId: string) => {
+  const handleEdit = (bookId: number) => {
     console.log('编辑图书:', bookId);
   };
 
   // 删除按钮点击事件
-  const handleDelete = (bookId: string) => {
-    console.log('删除图书:', bookId);
+  const handleDelete = async (bookId: number) => {
+    try {
+      const res = await deleteBook(bookId);
+      if (res) {
+        createMessage.success('删除成功');
+        await initBookList({
+          ...PaginateParams.value,
+        });
+      } else {
+        createMessage.error('删除失败');
+      }
+    } catch (error) {
+      createMessage.error('删除失败');
+    }
   };
 
   // 看书按钮点击事件
-  const handleRead = (bookId: string) => {
+  const handleRead = (bookId: number) => {
     console.log('查看图书:', bookId);
   };
 </script>
