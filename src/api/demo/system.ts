@@ -64,6 +64,8 @@ export const assignMenu = (data: any) => defHttp.post({ url: Api.AssignRole, dat
 export const getRoleMenuList = (roleId: number) =>
   defHttp.get<any>({ url: `${Api.GetRoleMenuList}/${roleId}` });
 
+export const deleteRole = (id: number) => defHttp.delete({ url: `${Api.RoleList}/${id}` });
+
 export const getRoleListByPage = (params?: RolePageParams) =>
   defHttp.get<RolePageListGetResultModel>({ url: Api.RolePageList, params });
 

@@ -31,7 +31,7 @@
 </template>
 <script lang="ts" setup>
   import { BasicTable, useTable, TableAction } from '@/components/Table';
-  import { getRoleList } from '@/api/demo/system';
+  import { getRoleList, deleteRole } from '@/api/demo/system';
 
   import { useDrawer } from '@/components/Drawer';
   import RoleDrawer from './RoleDrawer.vue';
@@ -39,11 +39,26 @@
   import { columns, searchFormSchema } from './role.data';
 
   defineOptions({ name: 'RoleManagement' });
-
+  import { useMessage } from '@/hooks/web/useMessage';
+  const { createMessage } = useMessage();
   const [registerDrawer, { openDrawer }] = useDrawer();
   const [registerTable, { reload }] = useTable({
     title: '角色列表',
     api: getRoleList,
+    rowKey: 'id',
+    fetchSetting: {
+      pageField: 'page',
+      sizeField: 'limit',
+      listField: 'items',
+      totalField: 'meta.totalItems',
+    },
+    // 设置默认每页条数
+    pagination: {
+      pageSize: 10,
+      pageSizeOptions: ['5', '10', '20', '50'],
+      showSizeChanger: true,
+      showQuickJumper: true,
+    },
     columns,
     formConfig: {
       labelWidth: 120,
@@ -75,8 +90,19 @@
     });
   }
 
-  function handleDelete(record: Recordable) {
-    console.log(record);
+  async function handleDelete(record: Recordable) {
+    let roleId = record.id;
+    try {
+      const res = await deleteRole(roleId);
+      if (res) {
+        createMessage.success('删除成功');
+      } else {
+        createMessage.error('删除失败');
+      }
+    } catch (error) {
+      createMessage.error('删除失败');
+    }
+    reload();
   }
 
   function handleSuccess() {
