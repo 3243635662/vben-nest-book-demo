@@ -39,6 +39,7 @@
   import { checkFileType } from '../helper';
   import { UploadResultStatus } from '@/components/Upload/src/types/typing';
   import { get, omit } from 'lodash-es';
+  import { deleteFileApi } from '@/api/sys/upload'; // 添加导入
 
   defineOptions({ name: 'ImageUpload' });
 
@@ -88,7 +89,16 @@
               url: item,
             };
           } else if (item && isObject(item)) {
-            return item;
+            // 确保对象包含必要的字段
+            const fileItem = item as any;
+            return {
+              uid: fileItem.uid || -i + '',
+              name: fileItem.name || fileItem.fileName,
+              status: fileItem.status || 'done',
+              url: fileItem.url || fileItem.response?.url,
+              response: fileItem.response, // 保留响应数据
+              ...fileItem,
+            };
           } else {
             return;
           }
@@ -106,6 +116,7 @@
     },
   );
 
+  // 获取上传的图片的Base64编码  用于图像回显
   function getBase64<T extends string | ArrayBuffer | null>(file: File) {
     return new Promise<T>((resolve, reject) => {
       const reader = new FileReader();
@@ -117,6 +128,7 @@
     });
   }
 
+  // 执行预览
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
       file.preview = await getBase64<string>(file.originFileObj!);
@@ -127,8 +139,28 @@
       file.name || previewImage.value.substring(previewImage.value.lastIndexOf('/') + 1);
   };
 
+  // 执行删除
   const handleRemove = async (file: UploadFile) => {
     if (fileList.value) {
+      let fileName = '';
+      if (file.response) {
+        if (file.response.data?.result?.fileName) {
+          fileName = file.response.data.result.fileName;
+        }
+      }
+      console.log(file.response.data.result.url);
+      if (fileName) {
+        try {
+          await deleteFileApi(fileName);
+        } catch (error) {
+          console.error('删除文件时出错:', error);
+        }
+      } else {
+        // 如果没有正常获取到fileName 那就直接干脆从url中获取 fileName
+        fileName = file.url?.split('/').pop() || '';
+      }
+
+      // 从前端文件列表中移除
       const index = fileList.value.findIndex((item) => item.uid === file.uid);
       index !== -1 && fileList.value.splice(index, 1);
       const value = getValue();
@@ -144,6 +176,7 @@
     previewTitle.value = '';
   };
 
+  //做一个上传前的校验
   const beforeUpload = (file: File) => {
     const { maxSize, accept } = props;
     const isAct = checkFileType(file, accept);
@@ -177,13 +210,44 @@
         name: name,
         filename: filename,
       });
-      if (props.resultField) {
-        let result = get(res, resultField);
-        info.onSuccess!(result);
-      } else {
-        // 不传入 resultField 的情况
-        info.onSuccess!(res.data);
+
+      // 安全地获取返回数据，兼容不同的响应格式
+      const result = res.result || res;
+      const url = result.url || result.filePath || '';
+      const fileName = result.fileName || result.name;
+
+      if (fileName) {
+        (info.file as any).fileName = fileName;
       }
+
+      // 保存完整的响应数据到文件对象
+      const responseData = {
+        url: url,
+        fileName: fileName,
+        result: result, // 保存完整的result对象
+        data: res.data || result, // 保存data结构，确保有时间戳文件名
+        ...result,
+      };
+
+      // 使用forceUpdate方式确保数据被保存
+      const fileIndex = fileList.value?.findIndex((f) => f.uid === (info.file as any).uid);
+      if (fileIndex !== undefined && fileIndex !== -1 && fileList.value) {
+        // 直接更新fileList中的文件对象
+        fileList.value[fileIndex] = {
+          ...fileList.value[fileIndex],
+          response: responseData,
+          url: url,
+          status: 'done',
+        } as any;
+      }
+
+      // 同时设置到info.file对象
+      (info.file as any).response = responseData;
+      (info.file as any).url = url;
+
+      // 返回包含url的数据
+      info.onSuccess!(responseData); // 传递完整的响应数据
+
       const value = getValue();
       isInnerOperate.value = true;
       emit('update:value', value);
@@ -198,11 +262,12 @@
     const list = (fileList.value || [])
       .filter((item) => item?.status === UploadResultStatus.DONE)
       .map((item: any) => {
-        if (item?.response && props?.resultField) {
-          return item?.response;
-        }
-        return item?.url || item?.response?.url;
+        // 将响应数据返回给调用此组件的函数或者值
+        return item?.response.data.result || '';
       });
+
+    // 如果设置了maxNumber为1，则返回单个值而不是数组
+    // return props.maxNumber === 1 ? list[0] || '' : list;
     return list;
   }
 </script>

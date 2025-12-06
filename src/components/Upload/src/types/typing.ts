@@ -9,6 +9,7 @@ export enum UploadResultStatus {
 }
 
 export interface FileItem {
+  [x: string]: any;
   thumbUrl?: string;
   name: string;
   size: string | number;
@@ -21,14 +22,16 @@ export interface FileItem {
 }
 
 export interface BaseFileItem {
-  uid: string | number;
+  uid?: string | number;
   url: string;
-  name?: string;
+  fileName?: string;
+  filePath?: string;
 }
 export interface PreviewFileItem {
   url: string;
-  name: string;
-  type: string;
+  fileName: string;
+  type?: string;
+  filePath?: string;
 }
 
 export interface FileBasicColumn extends Omit<BasicColumn, 'customRender'> {

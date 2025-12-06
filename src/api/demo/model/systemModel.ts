@@ -41,7 +41,12 @@ export interface DeptListItem {
   remark: string;
   status: number;
 }
-
+export interface AreaListItem {
+  id: string;
+  text: string;
+  orderNo: string;
+  status: number;
+}
 export interface MenuListItem {
   id: string;
   orderNo: string;

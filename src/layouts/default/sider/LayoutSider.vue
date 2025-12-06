@@ -60,7 +60,7 @@
     getSplit,
     getMenuTheme,
     getRealWidth,
-    getMenuHidden,
+    // getMenuHidden,
     getMenuFixed,
     getIsMixMode,
     getTrigger,
@@ -85,7 +85,8 @@
   });
 
   const showClassSideBarRef = computed(() => {
-    return unref(getSplit) ? !unref(getMenuHidden) : true;
+    // return unref(getSplit) ? !unref(getMenuHidden) : true;
+    return true;
   });
 
   const getSiderClass = computed(() => {

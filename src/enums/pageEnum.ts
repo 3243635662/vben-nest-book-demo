@@ -1,3 +1,4 @@
+// 枚举出来的根路径
 export enum PageEnum {
   // basic login path
   BASE_LOGIN = '/login',

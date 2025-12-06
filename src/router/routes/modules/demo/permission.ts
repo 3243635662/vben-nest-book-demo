@@ -8,7 +8,7 @@ const permission: AppRouteModule = {
   path: '/permission',
   name: 'Permission',
   component: LAYOUT,
-  redirect: '/permission/front/page',
+  redirect: '/permission/menu',
   meta: {
     orderNo: 15,
     icon: 'ion:key-outline',
@@ -16,6 +16,40 @@ const permission: AppRouteModule = {
   },
 
   children: [
+    // 新建菜单管理
+    {
+      path: 'menu',
+      name: 'PermissionMenu',
+      meta: {
+        title: t('routes.demo.permission.menu'),
+        ignoreKeepAlive: true,
+      },
+      component: () => import('@/views/permission/menu/index.vue'),
+    },
+    {
+      path: 'account',
+      name: 'PermissionAccount',
+      meta: {
+        title: t('routes.demo.permission.account'),
+      },
+      component: () => import('@/views/permission/account/index.vue'),
+    },
+    {
+      path: 'role',
+      name: 'PermissionRole',
+      meta: {
+        title: t('routes.demo.permission.role'),
+      },
+      component: () => import('@/views/permission/role/index.vue'),
+    },
+    {
+      path: 'password',
+      name: 'PermissionPassword',
+      meta: {
+        title: t('routes.demo.permission.password'),
+      },
+      component: () => import('@/views/permission/password/index.vue'),
+    },
     {
       path: 'front',
       name: 'PermissionFrontDemo',
@@ -46,6 +80,7 @@ const permission: AppRouteModule = {
           component: () => import('@/views/demo/permission/front/AuthPageA.vue'),
           meta: {
             title: t('routes.demo.permission.frontTestA'),
+            // 如果为super的时候才能访问到 auth-pageA
             roles: [RoleEnum.SUPER],
           },
         },

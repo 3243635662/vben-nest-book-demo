@@ -92,7 +92,7 @@ export class VAxios {
       const requestOptions =
         (config as unknown as any).requestOptions ?? this.options.requestOptions;
       const ignoreCancelToken = requestOptions?.ignoreCancelToken ?? true;
-
+      // 在发请求的时候 将请求的这些信息传入到axiosCanceler里面
       !ignoreCancelToken && axiosCanceler.addPending(config);
 
       if (requestInterceptors && isFunction(requestInterceptors)) {

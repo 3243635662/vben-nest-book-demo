@@ -41,7 +41,7 @@ function createPageGuard(router: Router) {
 
     return true;
   });
-
+  // 将加载过的页面路径添加到 loadedPageMap 中
   router.afterEach((to) => {
     loadedPageMap.set(to.path, true);
   });
@@ -68,9 +68,11 @@ function createPageLoadingGuard(router: Router) {
     return true;
   });
   router.afterEach(async () => {
+    //判断当前是否处于OPenPageLoading状态
     if (unref(getOpenPageLoading)) {
       // TODO Looking for a better way
       // The timer simulates the loading time to prevent flashing too fast,
+      // 是的话 就将PageLoading改成false  就是说页面没有在loading了
       setTimeout(() => {
         appStore.setPageLoading(false);
       }, 220);
@@ -91,6 +93,7 @@ function createHttpGuard(router: Router) {
   }
   router.beforeEach(async () => {
     // Switching the route will delete the previous request
+    // 清除这些当路由切换时  正在等待中的请求 也就是未响应的请求
     axiosCanceler?.removeAllPending();
     return true;
   });
@@ -120,6 +123,7 @@ export function createMessageGuard(router: Router) {
   router.beforeEach(async () => {
     try {
       if (closeMessageOnSwitch) {
+        // 在路由切换时  关闭所有未关闭的弹窗和通知消息
         Modal.destroyAll();
         notification.destroy();
       }
@@ -129,14 +133,18 @@ export function createMessageGuard(router: Router) {
     return true;
   });
 }
-
+// 这是说加载的时候有一个进度条的概念
 export function createProgressGuard(router: Router) {
   const { getOpenNProgress } = useTransitionSetting();
   router.beforeEach(async (to) => {
     if (to.meta.loaded) {
+      // 加载完毕直接返回true 不执行下面的额
       return true;
     }
+    // 如果没有加载完毕且  开启了进度条  就开启进度条
     unref(getOpenNProgress) && nProgress.start();
+    // 这就是个假的进度条
+    // nProgress.start();
     return true;
   });
 
