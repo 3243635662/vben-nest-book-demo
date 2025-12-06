@@ -253,7 +253,7 @@ export const usePermissionStore = defineStore({
         backendRoutes = [];
         const apiResult = await getEnableMenu();
         // 如果后端返回了有效的路由数据，直接使用后端数据，不需要转换
-        if (apiResult && Array.isArray(apiResult) && apiResult.length > 0) {
+        if (apiResult && apiResult.length > 0) {
           backendRoutes = apiResult;
         } else {
           createMessage.warning('后端返回数据无效，使用备用路由');

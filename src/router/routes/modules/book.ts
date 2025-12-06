@@ -31,6 +31,14 @@ const book: AppRouteModule = {
         title: t('routes.book.create'),
       },
     },
+    {
+      path: 'reading',
+      name: 'BookReading',
+      component: () => import('@/views/book/reading/index.vue'),
+      meta: {
+        title: t('routes.book.reading'),
+      },
+    },
   ],
 };
 
