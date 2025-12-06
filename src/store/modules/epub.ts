@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-// import chaptersData from '@/views/book/data/chapters.json';
+import chaptersData from '@/views/book/data/chapters.json';
 
 interface Chapter {
   id: number;
@@ -32,6 +32,9 @@ export const useEpubStore = defineStore('epub', () => {
     isLoading.value = true;
     console.log(file);
     setTimeout(() => {
+      // 模拟加载章节信息
+      chapters.value = chaptersData.chapters;
+      currentBook.value = true;
       isLoading.value = false;
     }, 3000);
   };

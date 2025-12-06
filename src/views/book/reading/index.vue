@@ -71,25 +71,36 @@
       </template>
 
       <!-- 阅读区域 -->
-      <div class="reading-area" v-if="currentBook">
-        <div class="reading-header"> {{ currentChapter.title }}</div>
-        <div class="reading-content">
-          <div class="chapter-content" :style="{ fontSize: fontSize + 'px' }">
-            这是章节的内容：{{ currentChapter.content }}
+      <div class="reading-area" v-if="currentBook || !currentBook">
+        <!-- 加载状态 - 放在阅读区域内 -->
+        <Loading
+          v-if="isLoading"
+          :loading="loadingState.loading"
+          :absolute="loadingState.absolute"
+          :theme="loadingState.theme"
+          :background="loadingState.background"
+          :tip="loadingState.tip"
+        />
+
+        <!-- 内容显示区域 -->
+        <div v-if="currentBook && !isLoading" class="reading-content-wrapper">
+          <div class="reading-header">
+            <Alert :message="currentChapter?.title" type="info" />
+          </div>
+          <div class="reading-content">
+            <div class="chapter-content" :style="{ fontSize: fontSize + 'px' }">
+              这是章节的内容：{{ currentChapter.content }}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div v-else-if="!currentBook && !isLoading" class="reading-area-empty">
-        <div class="empty-content">
-          <Icon icon="si:book-fill" :size="200" />
-          <p class="welcome-text">欢迎使用图书阅读器</p>
+        <!-- 空状态 -->
+        <div v-else-if="!currentBook && !isLoading" class="reading-area-empty">
+          <div class="empty-content">
+            <Icon icon="si:book-fill" :size="200" />
+            <p class="welcome-text">欢迎使用图书阅读器</p>
+          </div>
         </div>
-      </div>
-
-      <div v-else class="loading-spinner">
-        <!-- TODO  完善加载动画 -->
-        <div class="spinner">加载中</div>
       </div>
     </PageWrapper>
 
@@ -140,6 +151,8 @@
 
 <script setup lang="ts">
   // 导入
+  import { Loading } from '@/components/Loading';
+  import { Alert } from 'ant-design-vue';
   import Icon from '@/components/Icon/Icon.vue';
   import { useEpubStore } from '@/store/modules/epub';
   import { Tabs } from 'ant-design-vue';
@@ -148,7 +161,7 @@
   import { toolSearchSchemas, searchFormProps } from './data';
   import { PageWrapper } from '@/components/Page';
   import { Button } from '@/components/Button';
-  import { ref, computed } from 'vue';
+  import { ref, computed, reactive, watch } from 'vue';
   import { storeToRefs } from 'pinia';
   import { useSettingStore } from '@/store/modules/settingStore';
   import { useMessage } from '../../../hooks/web/useMessage';
@@ -166,7 +179,29 @@
   const bookName = ref('示例图书');
   const TabPane = Tabs.TabPane;
   const activeTab = ref('menu');
+  const loadingState = reactive<{
+    absolute?: boolean;
+    loading?: boolean;
+    theme?: 'dark' | 'light';
+    background?: string;
+    tip?: string;
+  }>({
+    absolute: true, // 使用绝对定位，相对于 reading-area
+    loading: false,
+    theme: isDarkTheme.value ? 'dark' : 'light',
+    background: 'rgba(255,255,255,0.8)', // 调整为更亮的背景
+    tip: '正在加载图书...',
+  });
 
+  // 监听
+  watch(
+    [isLoading, isDarkTheme],
+    ([newIsLoading, newIsDarkTheme]) => {
+      loadingState.loading = newIsLoading;
+      loadingState.theme = newIsDarkTheme ? 'dark' : 'light';
+    },
+    { immediate: true },
+  );
   // 方法
 
   // 文件选择处理
@@ -299,13 +334,19 @@
     position: relative;
     flex: 1;
     flex-direction: column;
+    min-height: 400px; /* 确保有最小高度，让 Loading 有显示空间 */
     overflow: hidden;
+
+    .reading-content-wrapper {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
     .reading-header {
       flex-shrink: 0;
       padding: 16px;
-      border-bottom: 1px solid #f3f4f6;
-      background-color: #fff;
       font-weight: 600;
     }
 
@@ -315,7 +356,7 @@
       overflow-y: auto;
 
       .chapter-content {
-        padding: 24px; /* 内容内边距 */
+        padding: 24px;
         font-family: 'Noto Serif SC', serif;
         line-height: 1.5;
       }
