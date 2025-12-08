@@ -13,8 +13,18 @@
 
           <!-- 章节管理 -->
           <div class="toolbar-center">
-            <Button type="primary" preIcon="meteor-icons:chevron-left">上一章 </Button>
-            <Button type="primary" preIcon="meteor-icons:chevron-right">下一章 </Button>
+            <Button
+              type="primary"
+              preIcon="meteor-icons:chevron-left"
+              @click="epubStore.prevChapter"
+              >上一章
+            </Button>
+            <Button
+              type="primary"
+              preIcon="meteor-icons:chevron-right"
+              @click="epubStore.nextChapter"
+              >下一章
+            </Button>
           </div>
 
           <div class="toolbar-right">
@@ -53,7 +63,13 @@
 
             <!-- 抽屉按钮 -->
             <div class="toolbar-right-drawer">
-              <Button type="primary" preIcon="iconoir:drawer" @click="showDrawer = true">
+              <Button
+                type="primary"
+                preIcon="iconoir:drawer"
+                @click="
+                  !currentBook ? createMessage.warning('请先加载epub文件') : (showDrawer = true)
+                "
+              >
                 目录
               </Button>
             </div>
@@ -85,11 +101,14 @@
         <!-- 内容显示区域 -->
         <div v-if="currentBook && !isLoading" class="reading-content-wrapper">
           <div class="reading-header">
-            <Alert :message="currentChapter?.title" type="info" />
+            <Alert :message="currentChapter.title" type="info" />
           </div>
           <div class="reading-content">
-            <div class="chapter-content" :style="{ fontSize: fontSize + 'px' }">
-              这是章节的内容：{{ currentChapter.content }}
+            <div
+              class="chapter-content"
+              :style="{ fontSize: fontSize + 'px' }"
+              v-html="currentChapter.htmlContent"
+            >
             </div>
           </div>
         </div>
@@ -114,16 +133,10 @@
     />
 
     <!-- 目录抽屉 -->
-    <BasicDrawer
-      :open="showDrawer"
-      @open-change="showDrawer = $event"
-      title="图书目录"
-      width="450"
-      placement="left"
-    >
+    <BasicDrawer :open="showDrawer" @open-change="showDrawer = $event" width="450" placement="left">
       <template #title>
         <div class="drawer-title">
-          <span>{{ bookName }}</span>
+          <span>{{ currentBook?.title || '图书目录' }}</span>
         </div>
       </template>
 
@@ -176,7 +189,6 @@
     storeToRefs(epubStore);
   const isDarkTheme = computed(() => theme.value === 'dark');
   const showDrawer = ref(false);
-  const bookName = ref('示例图书');
   const TabPane = Tabs.TabPane;
   const activeTab = ref('menu');
   const loadingState = reactive<{
@@ -210,7 +222,6 @@
     try {
       if (file) {
         epubStore.loadEpubFile(file);
-
         createMessage.success('文件选择成功');
       }
     } catch (error) {

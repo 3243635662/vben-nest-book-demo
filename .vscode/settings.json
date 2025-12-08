@@ -7,7 +7,7 @@
   "typescript.inlayHints.variableTypes.enabled": true,
   "typescript.suggest.autoImports": true,
   "typescript.updateImportsOnFileMove.enabled": "always",
-
+  "typescript.locale": "en",
   "volar.tsPlugin": true,
   "volar.tsPluginStatus": false,
 
@@ -168,7 +168,7 @@
   "i18n-ally.namespace": true,
   "i18n-ally.pathMatcher": "{locale}/{namespaces}.{ext}",
   "i18n-ally.enabledParsers": ["json", "ts", "js"],
-  "i18n-ally.sourceLanguage": "en",
+  "i18n-ally.sourceLanguage": "zh-CN",
   "i18n-ally.displayLanguage": "zh-CN",
   "i18n-ally.enabledFrameworks": ["vue", "react"],
 
@@ -251,5 +251,6 @@
       "command": "extension.execute",
       "priority": 4
     }
-  ]
+  ],
+  "chatgpt.openOnStartup": true
 }
