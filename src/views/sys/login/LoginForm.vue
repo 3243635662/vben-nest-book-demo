@@ -46,7 +46,7 @@
 
     <FormItem class="enter-x">
       <Button type="primary" size="large" block @click="handleLogin" :loading="loading">
-        {{ t('sys.login.loginButton') }}
+        {{ loading?t('sys.login.loginButtonLoading'):t('sys.login.loginButton') }}
       </Button>
       <!-- <Button size="large" class="mt-4 enter-x" block @click="handleRegister">
         {{ t('sys.login.registerButton') }}
@@ -79,18 +79,69 @@
       <GoogleCircleFilled />
       <TwitterCircleFilled />
     </div>
+
+    <!-- 项目地址信息 -->
+    <div class="enter-x project-links">
+      <Divider>项目地址</Divider>
+      <div class="flex justify-center space-x-4">
+        <Tooltip title="个人博客">
+          <a href="https://fanblog.top" target="_blank" rel="noopener noreferrer">
+            <Button type="link" size="small">
+              <template #icon>
+                <GlobalOutlined />
+              </template>
+              个人博客
+            </Button>
+          </a>
+        </Tooltip>
+        <Tooltip title="Gitee源码">
+          <a href="https://gitee.com/Fan_Fan_Fan8/vben-nest-book-demo" target="_blank" rel="noopener noreferrer">
+            <Button type="link" size="small">
+              <template #icon>
+      <GoogleCircleFilled />
+              </template>
+              Gitee
+            </Button>
+          </a>
+        </Tooltip>
+        <Tooltip title="Github源码">
+          <a href="https://github.com/3243635662/vben-nest-book-demo" target="_blank" rel="noopener noreferrer">
+            <Button type="link" size="small">
+              <template #icon>
+                <GithubFilled />
+              </template>
+              GitHub
+            </Button>
+          </a>
+        </Tooltip>
+        <Tooltip title="后端源码">
+          <a href="https://gitee.com/Fan_Fan_Fan8/nest.js-demo" target="_blank" rel="noopener noreferrer">
+            <Button type="link" size="small">
+              <template #icon>
+                <CloudServerOutlined />
+              </template>
+              后端源码
+            </Button>
+          </a>
+        </Tooltip>
+      </div>
+    </div>
+
   </Form>
+   
 </template>
 <script lang="ts" setup>
   import { reactive, ref, unref, computed } from 'vue';
 
-  import { Checkbox, Form, Input, Row, Col, Button, Divider } from 'ant-design-vue';
+  import { Checkbox, Form, Input, Row, Col, Button, Divider, Tooltip } from 'ant-design-vue';
   import {
     GithubFilled,
     WechatFilled,
     AlipayCircleFilled,
     GoogleCircleFilled,
     TwitterCircleFilled,
+    GlobalOutlined,
+    CloudServerOutlined,
   } from '@ant-design/icons-vue';
   import LoginFormTitle from './LoginFormTitle.vue';
 
@@ -119,7 +170,7 @@
   const rememberMe = ref(false);
 
   const formData = reactive({
-    account: 'vben',
+    account: 'fanfan',
     password: '123456',
   });
 
@@ -128,7 +179,7 @@
   //onKeyStroke('Enter', handleLogin);
 
   const getShow = computed(() => unref(getLoginState) === LoginStateEnum.LOGIN);
-
+  // login function
   async function handleLogin() {
     const data = await validForm();
     if (!data) return;
@@ -142,7 +193,7 @@
       if (userInfo) {
         notification.success({
           message: t('sys.login.loginSuccessTitle'),
-          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.realName}`,
+          description: `${t('sys.login.loginSuccessDesc')}: ${userInfo.nickname}`,
           duration: 3,
         });
       }

@@ -42,7 +42,7 @@
   import { reactive } from 'vue';
 
   import { BasicTable, useTable, TableAction } from '@/components/Table';
-  import { getAccountList } from '@/api/demo/system';
+  import { getMerchantAccountList } from '@/api/demo/system';
   import { PageWrapper } from '@/components/Page';
   import DeptTree from './DeptTree.vue';
 
@@ -59,7 +59,7 @@
   const searchInfo = reactive<Recordable>({});
   const [registerTable, { reload, updateTableDataRecord, getSearchInfo }] = useTable({
     title: '账号列表',
-    api: getAccountList,
+    api: getMerchantAccountList,
     rowKey: 'id',
     columns,
     formConfig: {

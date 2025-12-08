@@ -3,13 +3,13 @@ import { useMessage } from '@/hooks/web/useMessage';
 import { useI18n } from '@/hooks/web/useI18n';
 // import router from '@/router';
 // import { PageEnum } from '@/enums/pageEnum';
-import { useUserStoreWithOut } from '@/store/modules/user';
-import projectSetting from '@/settings/projectSetting';
-import { SessionTimeoutProcessingEnum } from '@/enums/appEnum';
+// import { useUserStoreWithOut } from '@/store/modules/user';
+// import projectSetting from '@/settings/projectSetting';
+// import { SessionTimeoutProcessingEnum } from '@/enums/appEnum';
 
 const { createMessage, createErrorModal } = useMessage();
 const error = createMessage.error!;
-const stp = projectSetting.sessionTimeoutProcessing;
+// const stp = projectSetting.sessionTimeoutProcessing;
 
 export function checkStatus(
   status: number,
@@ -17,7 +17,7 @@ export function checkStatus(
   errorMessageMode: ErrorMessageMode = 'message',
 ): void {
   const { t } = useI18n();
-  const userStore = useUserStoreWithOut();
+  // const userStore = useUserStoreWithOut();
   let errMessage = '';
 
   switch (status) {
@@ -27,16 +27,16 @@ export function checkStatus(
     // 401: Not logged in
     // Jump to the login page if not logged in, and carry the path of the current page
     // Return to the current page after successful login. This step needs to be operated on the login page.
-    case 401:
-      userStore.setToken(undefined);
-      errMessage = msg || t('sys.api.errMsg401');
-      if (stp === SessionTimeoutProcessingEnum.PAGE_COVERAGE) {
-        userStore.setSessionTimeout(true);
-      } else {
-        // 被动登出，带redirect地址
-        userStore.logout(false);
-      }
-      break;
+    // case 401:
+    //   userStore.setToken(undefined);
+    //   errMessage = msg || t('sys.api.errMsg401');
+    //   if (stp === SessionTimeoutProcessingEnum.PAGE_COVERAGE) {
+    //     userStore.setSessionTimeout(true);
+    //   } else {
+    //     // 被动登出，带redirect地址
+    //     userStore.logout(false);
+    //   }
+    //   break;
     case 403:
       errMessage = t('sys.api.errMsg403');
       break;

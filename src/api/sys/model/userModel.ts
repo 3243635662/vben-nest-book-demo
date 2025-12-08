@@ -35,4 +35,13 @@ export interface GetUserInfoModel {
   avatar: string;
   // 介绍
   desc?: string;
+  // 昵称
+  nickname?: string;
+}
+
+/**
+ * @description: Get IP address return value
+ */
+export interface GetIPModel {
+  ip: string; // IP地址
 }

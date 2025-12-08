@@ -86,6 +86,13 @@ const transform: AxiosTransform = {
         }
     }
 
+    // // 对于401等状态码错误，避免在transformResponseHook中显示模态框
+    // // 让responseInterceptorsCatch统一处理错误显示
+    // if (code === 401 && options.errorMessageMode === 'modal') {
+    //   // 对于401错误，不在这里显示模态框，让后续的错误拦截器处理
+    //   throw new Error(timeoutMsg || t('sys.api.apiRequestFailed'));
+    // }
+
     // errorMessageMode='modal'的时候会显示modal错误弹窗，而不是消息提示，用于一些比较重要的错误
     // errorMessageMode='none' 一般是调用时明确表示不希望自动弹出错误提示
     if (options.errorMessageMode === 'modal') {
@@ -209,12 +216,14 @@ const transform: AxiosTransform = {
       throw new Error(error as unknown as string);
     }
 
+    // 对于401错误，统一在checkStatus中处理错误显示
+    // 避免双重错误处理导致的模态框闪动
     checkStatus(error?.response?.status, msg, errorMessageMode);
 
     // 添加自动重试机制 保险起见 只针对GET请求
     const retryRequest = new AxiosRetry();
-    const { isOpenRetry } = config.requestOptions.retryRequest;
-    config.method?.toUpperCase() === RequestEnum.GET &&
+    const { isOpenRetry } = config?.requestOptions?.retryRequest || { isOpenRetry: false };
+    config?.method?.toUpperCase() === RequestEnum.GET &&
       isOpenRetry &&
       error?.response?.status !== 401 &&
       // @ts-ignore
@@ -230,8 +239,8 @@ function createAxios(opt?: Partial<CreateAxiosOptions>) {
       {
         // See https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication#authentication_schemes
         // authentication schemes，e.g: Bearer
-        // authenticationScheme: 'Bearer',
-        authenticationScheme: '',
+        authenticationScheme: 'Bearer',
+        // authenticationScheme: '',
         timeout: 10 * 1000,
         // 基础接口地址
         // baseURL: globSetting.apiUrl,

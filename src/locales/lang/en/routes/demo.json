@@ -134,6 +134,10 @@
   },
   "permission": {
     "permission": "Permission",
+    "menu": "menu",
+    "account": "merchant",
+    "role": "role",
+    "password": "password",
     "front": "front-end",
     "frontPage": "Page",
     "frontBtn": "Button",
